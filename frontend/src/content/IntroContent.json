@@ -1,0 +1,14 @@
+{
+  "title": "AI-powered career insights for ambitious professionals",
+  "text": "CareerSense helps you understand your strengths, discover the right roles, and prepare for interviews with confidence. Upload your CV and get started in minutes.",
+  "button": [
+    {
+      "title": "We are safe!",
+      "color": "indigo"
+    },
+    {
+      "title": "Start today!",
+      "color": "purple"
+    }
+  ]
+}

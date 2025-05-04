@@ -1,0 +1,16 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .bg { fill: #B19CFF; }
+    .book { fill: none; stroke: white; stroke-width: 2.5; }
+    .arrow { fill: none; stroke: white; stroke-width: 2.5; }
+  </style>
+  
+  <!-- Background -->
+  <rect class="bg" width="64" height="64" rx="12" />
+  
+  <!-- Book outline -->
+  <path class="book" d="M20 42 L20 18 L44 18 L44 42 L32 36 L20 42 Z" />
+  
+  <!-- Arrow -->
+  <path class="arrow" d="M32 18 L32 28 M27 23 L32 18 L37 23" />
+</svg>

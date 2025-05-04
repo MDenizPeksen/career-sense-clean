@@ -1,0 +1,26 @@
+{
+  "app": {
+    "title": "CareerSense",
+    "description": "Plataforma de orientación profesional con IA"
+  },
+  "nav": {
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "cv_upload": "Subir CV",
+    "career_paths": "Trayectorias Profesionales",
+    "mock_interviews": "Entrevistas de Práctica"
+  },
+  "buttons": {
+    "upload": "Subir CV",
+    "analyze": "Analizar",
+    "start": "Comenzar",
+    "learn_more": "Más Información"
+  },
+  "dashboard": {
+    "profile": "Perfil",
+    "recommended_roles": "Roles Recomendados",
+    "strengths": "Tus Fortalezas",
+    "improvement": "Áreas de Mejora",
+    "optimization": "Optimización del CV"
+  }
+}

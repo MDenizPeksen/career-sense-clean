@@ -1,0 +1,20 @@
+{
+  "short_name": "CareerSense",
+  "name": "CareerSense - AI Career Guidance",
+  "icons": [
+    {
+      "src": "img/svg/favicon.svg",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2E2A62",
+  "background_color": "#ffffff"
+}
