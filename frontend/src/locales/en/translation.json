@@ -1,0 +1,26 @@
+{
+  "app": {
+    "title": "CareerSense",
+    "description": "AI-powered career guidance platform"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "cv_upload": "CV Upload",
+    "career_paths": "Career Paths",
+    "mock_interviews": "Mock Interviews"
+  },
+  "buttons": {
+    "upload": "Upload CV",
+    "analyze": "Analyze",
+    "start": "Get Started",
+    "learn_more": "Learn More"
+  },
+  "dashboard": {
+    "profile": "Profile",
+    "recommended_roles": "Recommended Roles",
+    "strengths": "Your Strengths",
+    "improvement": "Areas for Improvement",
+    "optimization": "Resume Optimization"
+  }
+}
