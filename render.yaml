@@ -1,0 +1,26 @@
+# Render Blueprint for the CareerSense backend.
+# Deploy via Render dashboard -> "New +" -> "Blueprint" and point it at this repo.
+# Secret values (OPENAI_API_KEY, CLERK_*) are entered in the dashboard, not here.
+services:
+  - type: web
+    name: careersense-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm ci
+    startCommand: node index.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render injects PORT automatically; index.js reads process.env.PORT.
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      # Set to your Vercel frontend URL once deployed, e.g. https://career-sense.vercel.app
+      - key: ALLOWED_ORIGINS
+        sync: false
