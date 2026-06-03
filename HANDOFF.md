@@ -5,7 +5,7 @@ Update the "Last updated" line and the relevant sections whenever you make
 meaningful progress.
 
 **Last updated:** 2026-06-03
-**Active branch:** `harden-and-deploy` (not yet merged to `main` or pushed)
+**Active branch:** `harden-and-deploy` (not yet merged to `main` or pushed; 8 commits)
 
 ---
 
@@ -34,7 +34,19 @@ testing** (`AUTH_ENABLED=false`, `VITE_AUTH_ENABLED=false`).
 | 1 | Backend hardening (auth, env config, CORS, uploads, dep cleanup) | ✅ Done |
 | 2 | Port CV-upload → analysis flow onto Vite | ✅ Done |
 | 3 | Deploy (Render + Vercel + Clerk) | ⏳ Config scaffolded; live setup needs user accounts/secrets |
-| 4 | Port remaining features; remove `frontend/`; tests + CI | ⬜ Not started |
+| 4 | Port remaining features; remove `frontend/`; tests + CI | 🔄 In progress |
+
+### Phase 4 progress
+- ✅ Dashboard renders the full `/analyze` payload (archetype incl. inline shape,
+  STAR stories, future growth, career-dev insights, resume recommendations).
+  Verified end-to-end against a real `gpt-4o-mini` analysis.
+- ✅ Polished landing page (`features/home/Home.tsx`), sticky footer, header nav.
+- ⬜ Mock Interviews page (backend `/api/interview/questions` exists).
+- ⬜ Career Paths / profile / legal pages.
+- ⬜ Remove `frontend/`; refresh `README.md` + `docs/*`.
+- ⬜ Tests + CI.
+- Note: OpenAI project currently has only `gpt-4o-mini` enabled (newer models 403).
+  A separate task is queued to make rejected uploads return 400 (not 500).
 
 ## What's done (detail)
 
