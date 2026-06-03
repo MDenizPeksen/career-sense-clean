@@ -15,12 +15,15 @@ const errorHandler = require('./middleware/errorHandler');
 const compressionMiddleware = require('./middleware/compressionMiddleware');
 const { cacheMiddleware } = require('./middleware/cacheMiddleware');
 const { apiLimiter, cvAnalysisLimiter } = require('./middleware/rateLimitMiddleware');
+const { isClerkConfigured } = require('./middleware/authMiddleware');
+const { clerkMiddleware } = require('@clerk/express');
 
 // Import routes
 const routes = require('./routes');
 
 // Import services
 const openaiService = require('./services/openaiService');
+const { sweepStaleUploads } = require('./services/fileProcessingService');
 
 // Verify environment variables
 if (!process.env.OPENAI_API_KEY) {
@@ -60,6 +63,10 @@ if (ENABLE_CLUSTERING && cluster.isMaster) {
   // Initialize Express app
   const app = express();
 
+  // Trust the first proxy (Render/Railway/Nginx) so client IPs and
+  // rate limiting work correctly behind a load balancer.
+  app.set('trust proxy', 1);
+
   // Security middleware
   app.use(helmet());
 
@@ -75,6 +82,12 @@ if (ENABLE_CLUSTERING && cluster.isMaster) {
   // Body parser middleware
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+  // Clerk auth context (only when configured — keeps local dev runnable
+  // without Clerk keys). requireAuth() on protected routes reads this.
+  if (isClerkConfigured()) {
+    app.use(clerkMiddleware());
+  }
 
   // Apply rate limiting to all API routes
   app.use('/api', apiLimiter);
@@ -120,6 +133,12 @@ if (ENABLE_CLUSTERING && cluster.isMaster) {
         console.log(`\n🚀 Server running on port ${port}`);
         console.log(`📊 API available at http://localhost:${port}`);
         console.log(`🔍 Health check at http://localhost:${port}/health`);
+
+        // Clean up any orphaned upload files on startup, then hourly.
+        const uploadsDir = path.join(__dirname, 'uploads');
+        sweepStaleUploads(uploadsDir);
+        setInterval(() => sweepStaleUploads(uploadsDir), 60 * 60 * 1000).unref();
+
         console.log(`\n🧠 Testing OpenAI connection...`);
         
         // Test OpenAI connection

@@ -2,7 +2,7 @@
 node_modules/
 /.pnp
 .pnp.js
-package-lock.json
+# package-lock.json is committed for reproducible installs (npm ci on deploy).
 yarn.lock
 
 # Testing
@@ -12,13 +12,13 @@ yarn.lock
 /build
 /dist
 
-# Environment variables
+# Environment variables (real secrets — never commit)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.example
+# NOTE: .env.example files are committed as placeholder templates (no real secrets).
 
 # Logs
 logs

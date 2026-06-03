@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const cvController = require('../controllers/cvController');
 const { upload } = require('../middleware/uploadMiddleware');
+const { requireAuth } = require('../middleware/authMiddleware');
 
-// CV analysis route
-router.post('/analyze', upload.single('file'), cvController.analyzeCV);
+// CV analysis route (protected — verifies the user before any OpenAI work)
+router.post('/analyze', requireAuth, upload.single('file'), cvController.analyzeCV);
 
 module.exports = router;
