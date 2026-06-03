@@ -8,6 +8,9 @@ import {
   BookOpen,
   Target,
   Upload,
+  Lightbulb,
+  MessageSquare,
+  Rocket,
 } from 'lucide-react';
 import type { CvAnalysis, ArchetypeData } from '../../types/analysis';
 
@@ -44,12 +47,34 @@ const List: React.FC<{ items?: string[]; empty?: string }> = ({ items, empty }) 
   );
 };
 
-function getArchetypeName(a: ArchetypeData): string {
-  return 'archetype' in a ? a.archetype : a.primary?.archetype ?? 'Career Archetype';
+// The backend may return three archetype shapes (simple, complex, inline).
+// These helpers read each robustly without assuming one shape.
+// Discriminate by unique keys: 'archetype' => Simple, 'explanation' => Complex,
+// otherwise Inline (primary/secondary are plain strings).
+function archetypeName(a: ArchetypeData): string {
+  if ('archetype' in a) return a.archetype;
+  if ('explanation' in a) return a.primary?.archetype ?? 'Career Archetype';
+  return a.primary || 'Career Archetype';
 }
-function getArchetypeDescription(a: ArchetypeData): string {
+function archetypeSecondary(a: ArchetypeData): string | undefined {
+  if ('archetype' in a) return undefined;
+  if ('explanation' in a) return a.secondary?.archetype;
+  return a.secondary;
+}
+function archetypeDescription(a: ArchetypeData): string {
   if ('archetype' in a) return a.short_description || a.reasoning || '';
-  return a.primary?.description || a.explanation || '';
+  if ('explanation' in a) return a.primary?.description || a.explanation || '';
+  return a.description || '';
+}
+function archetypeStrengths(a: ArchetypeData): string[] {
+  if ('archetype' in a) return [];
+  if ('explanation' in a) return a.primary?.strengths ?? [];
+  return a.strengths ?? [];
+}
+function archetypeGrowth(a: ArchetypeData): string[] {
+  if ('archetype' in a) return [];
+  if ('explanation' in a) return a.primary?.developmentAreas ?? [];
+  return a.growthAreas ?? [];
 }
 
 const Dashboard: React.FC = () => {
@@ -109,8 +134,30 @@ const Dashboard: React.FC = () => {
 
       {analysis.archetype && (
         <Section title="Career Archetype" icon={<Award size={20} />}>
-          <h3 className="text-lg font-semibold text-blue-700 mb-2">{getArchetypeName(analysis.archetype)}</h3>
-          <p className="text-gray-700">{getArchetypeDescription(analysis.archetype)}</p>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-lg font-semibold text-blue-700">{archetypeName(analysis.archetype)}</h3>
+            {archetypeSecondary(analysis.archetype) && (
+              <span className="text-sm text-gray-500">+ {archetypeSecondary(analysis.archetype)}</span>
+            )}
+          </div>
+          <p className="text-gray-700">{archetypeDescription(analysis.archetype)}</p>
+          {(archetypeStrengths(analysis.archetype).length > 0 ||
+            archetypeGrowth(analysis.archetype).length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              {archetypeStrengths(analysis.archetype).length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Strengths</h4>
+                  <List items={archetypeStrengths(analysis.archetype)} />
+                </div>
+              )}
+              {archetypeGrowth(analysis.archetype).length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Growth areas</h4>
+                  <List items={archetypeGrowth(analysis.archetype)} />
+                </div>
+              )}
+            </div>
+          )}
         </Section>
       )}
 
@@ -213,7 +260,13 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           )}
-          {resume.formatting_feedback && <p className="text-gray-700 text-sm">{resume.formatting_feedback}</p>}
+          {resume.formatting_feedback && <p className="text-gray-700 text-sm mb-4">{resume.formatting_feedback}</p>}
+          {resume.general_recommendations && resume.general_recommendations.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Recommendations</h4>
+              <List items={resume.general_recommendations} />
+            </div>
+          )}
         </Section>
       )}
 
@@ -233,6 +286,70 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </Section>
+      )}
+
+      {analysis.star_interview_stories && analysis.star_interview_stories.length > 0 && (
+        <Section title="Interview Stories (STAR)" icon={<MessageSquare size={20} />}>
+          <div className="space-y-4">
+            {analysis.star_interview_stories.map((story, i) => (
+              <div key={i} className="border border-gray-100 rounded-xl p-4">
+                {story.title && <h4 className="font-semibold text-gray-800 mb-2">{story.title}</h4>}
+                <dl className="space-y-1 text-sm">
+                  {(['situation', 'task', 'action', 'result'] as const).map((k) =>
+                    story[k] ? (
+                      <div key={k} className="flex gap-2">
+                        <dt className="font-semibold text-gray-600 capitalize w-20 flex-shrink-0">{k}</dt>
+                        <dd className="text-gray-700">{story[k]}</dd>
+                      </div>
+                    ) : null
+                  )}
+                </dl>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {analysis.future_growth_potential && (
+        <Section title="Future Growth Potential" icon={<Rocket size={20} />}>
+          {analysis.future_growth_potential.career_growth_trajectory && (
+            <p className="text-gray-700 mb-4">{analysis.future_growth_potential.career_growth_trajectory}</p>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {analysis.future_growth_potential.skills_forecast?.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-2">Skills to watch</h4>
+                <div className="flex flex-wrap gap-2">
+                  {analysis.future_growth_potential.skills_forecast.map((s, i) => (
+                    <Pill key={i}>{s}</Pill>
+                  ))}
+                </div>
+              </div>
+            )}
+            {analysis.future_growth_potential.industry_insights?.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-2">Industry insights</h4>
+                <List items={analysis.future_growth_potential.industry_insights} />
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
+
+      {analysis.career_development_insights && (
+        <Section title="Career Development" icon={<Lightbulb size={20} />}>
+          <div className="space-y-3 text-gray-700">
+            {analysis.career_development_insights.strengths_leverage && (
+              <p><span className="font-semibold">Leverage your strengths:</span> {analysis.career_development_insights.strengths_leverage}</p>
+            )}
+            {analysis.career_development_insights.networking_strategy && (
+              <p><span className="font-semibold">Networking:</span> {analysis.career_development_insights.networking_strategy}</p>
+            )}
+            {analysis.career_development_insights.personal_branding_tips && (
+              <p><span className="font-semibold">Personal branding:</span> {analysis.career_development_insights.personal_branding_tips}</p>
+            )}
           </div>
         </Section>
       )}
