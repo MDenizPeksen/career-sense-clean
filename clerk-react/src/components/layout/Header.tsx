@@ -1,42 +1,41 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
+
+const navClass = ({ isActive }: { isActive: boolean }) =>
+  `text-sm font-medium transition-colors ${
+    isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'
+  }`;
 
 /**
- * Header component with authentication controls
- * Shows different UI based on authentication state
+ * Header with navigation and authentication controls.
+ * Nav links are always shown; protected routes gate themselves when auth is on.
  */
 const Header = () => {
   return (
-    <header className="bg-white shadow-sm py-4">
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        <div className="flex items-center">
+    <header className="bg-white shadow-sm sticky top-0 z-20">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-8">
           <Link to="/" className="text-xl font-bold text-blue-600">CareerSense</Link>
+          <nav className="hidden sm:flex items-center gap-6">
+            <NavLink to="/" end className={navClass}>Home</NavLink>
+            <NavLink to="/upload" className={navClass}>Upload CV</NavLink>
+            <NavLink to="/dashboard" className={navClass}>Dashboard</NavLink>
+          </nav>
         </div>
-        <div className="flex items-center space-x-4">
-          <SignedIn>
-            <Link to="/upload" className="text-gray-700 hover:text-blue-600 transition-colors">Upload CV</Link>
-            <Link to="/dashboard" className="text-gray-700 hover:text-blue-600 transition-colors">Dashboard</Link>
-          </SignedIn>
+        <div className="flex items-center gap-4">
           <SignedOut>
             <SignInButton mode="modal">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                Login / Signup
+              <button className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors">
+                Sign in
               </button>
             </SignInButton>
           </SignedOut>
           <SignedIn>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">My Account</span>
-              <UserButton 
-                userProfileMode="modal"
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: "w-10 h-10"
-                  }
-                }}
-              />
-            </div>
+            <UserButton
+              userProfileMode="modal"
+              afterSignOutUrl="/"
+              appearance={{ elements: { userButtonAvatarBox: 'w-9 h-9' } }}
+            />
           </SignedIn>
         </div>
       </div>
