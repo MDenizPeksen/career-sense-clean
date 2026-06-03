@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.30.4",
+    "framer-motion": "^12.40.0",
+    "lucide-react": "^1.17.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.30.0"
