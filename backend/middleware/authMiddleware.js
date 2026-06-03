@@ -4,7 +4,8 @@
  * Protects the expensive OpenAI-backed routes so anonymous traffic can't
  * run up API costs. Token verification is networkless via @clerk/express.
  *
- * Configuration is driven by CLERK_SECRET_KEY:
+ * AUTH_ENABLED=false bypasses verification entirely (useful for local testing).
+ * Otherwise behavior is driven by CLERK_SECRET_KEY:
  *   - configured        -> verify the request; 401 if not signed in.
  *   - missing + dev      -> allow through with a one-time warning (local DX).
  *   - missing + prod     -> fail closed with 503 (refuse to expose paid routes).
@@ -12,11 +13,21 @@
 
 const { getAuth } = require('@clerk/express');
 
+const isAuthEnabled = () => process.env.AUTH_ENABLED !== 'false';
 const isClerkConfigured = () => Boolean(process.env.CLERK_SECRET_KEY);
 
+let warnedAboutDisabledAuth = false;
 let warnedAboutMissingClerk = false;
 
 const requireAuth = (req, res, next) => {
+  if (!isAuthEnabled()) {
+    if (!warnedAboutDisabledAuth) {
+      console.warn('⚠️  AUTH_ENABLED=false — auth is DISABLED on protected routes (testing mode).');
+      warnedAboutDisabledAuth = true;
+    }
+    return next();
+  }
+
   if (!isClerkConfigured()) {
     if (process.env.NODE_ENV === 'production') {
       return res.status(503).json({
