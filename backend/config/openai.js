@@ -7,6 +7,10 @@ const num = (value, fallback) => {
 
 module.exports = {
   apiKey: process.env.OPENAI_API_KEY,
+  // Only gpt-4o-mini is enabled on the current OpenAI project. To upgrade (e.g.
+  // gpt-4.1-mini — better JSON/instruction-following at a similar low price),
+  // enable the model in the OpenAI dashboard (Project -> Limits -> model access)
+  // and set OPENAI_MODEL accordingly. No code change needed.
   model: process.env.OPENAI_MODEL || "gpt-4o-mini",
   maxTokens: {
     cv: 2500,

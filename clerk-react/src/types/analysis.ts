@@ -24,8 +24,17 @@ export interface ComplexArchetype {
   explanation: string;
 }
 
-// Union type for different archetype formats
-export type ArchetypeData = SimpleArchetype | ComplexArchetype;
+// Inline format produced by the /analyze prompt: primary/secondary are plain strings.
+export interface InlineArchetype {
+  primary: string;
+  secondary?: string;
+  description: string;
+  strengths?: string[];
+  growthAreas?: string[];
+}
+
+// Union type for the different archetype formats the backend may return.
+export type ArchetypeData = SimpleArchetype | ComplexArchetype | InlineArchetype;
 
 // User profile information
 export interface UserProfile {
