@@ -7,6 +7,7 @@ const archetypeRoutes = require('./archetypeRoutes');
 const healthRoutes = require('./healthRoutes');
 const interviewRoutes = require('./interviewRoutes');
 const discoveryRoutes = require('./discoveryRoutes');
+const careerPathRoutes = require('./careerPathRoutes');
 
 // Basic root route
 router.get('/', (req, res) => {
@@ -18,6 +19,7 @@ router.use('/', cvRoutes);
 router.use('/api', archetypeRoutes);
 router.use('/api', interviewRoutes);
 router.use('/api', discoveryRoutes);
+router.use('/api', careerPathRoutes);
 router.use('/', healthRoutes);
 
 module.exports = router;

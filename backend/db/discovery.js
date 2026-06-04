@@ -82,6 +82,22 @@ async function addMessage(sessionId, role, content) {
 }
 
 /**
+ * Most recent enriched profile from a completed discovery session, or null.
+ * Lets other features (e.g. career-path matching) reuse what discovery learned.
+ * @param {string} clerkUserId
+ * @returns {Promise<object|null>}
+ */
+async function getLatestEnrichedProfile(clerkUserId) {
+  const user = await prisma.user.findUnique({ where: { clerkUserId } });
+  if (!user) return null;
+  const session = await prisma.discoverySession.findFirst({
+    where: { userId: user.id, status: 'completed', NOT: { enrichedProfile: { equals: null } } },
+    orderBy: { updatedAt: 'desc' },
+  });
+  return session ? session.enrichedProfile : null;
+}
+
+/**
  * Mark a session completed and store the enriched profile.
  * @param {string} sessionId
  * @param {object} enrichedProfile
@@ -98,6 +114,7 @@ module.exports = {
   createSession,
   getSession,
   getActiveSession,
+  getLatestEnrichedProfile,
   addMessage,
   completeSession,
 };

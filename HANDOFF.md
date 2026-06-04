@@ -81,9 +81,36 @@ go stateful (DB + real auth), first milestone = conversational discovery, real d
     completion produced an accurate enriched profile (grounded in answers, not
     fabricated); GET-by-id, latest-active (null after completion), and the 400/404
     edge cases all check out. FE builds clean under strict TS. Test rows cleaned up.
-- ⬜ Phases D–F: real data (O*NET + courses), interview agent, progress "tree".
-  - **Phase D is the natural next step** — feed the discovery `enrichedProfile` +
-    CV analysis into O*NET-grounded role-shift + skill-gap, then real course links.
+- ✅ **Phase D (real-data role-shift + skill-gap) DONE + verified (fallback path):**
+  a `GET /api/career-paths` engine that turns the saved analysis (+ discovery
+  enriched profile) into career-shift options with **shared vs. gap** skills.
+  - `services/data/onetClient.js` — O*NET Web Services client (HTTP Basic via
+    `ONET_USERNAME`/`ONET_PASSWORD`, `isConfigured()`, search/related/skills, defensive
+    pure parsers). **Courses deferred** (PM call) — labor data only this phase.
+  - `services/careerPathService.js` — pure skill-gap logic (normalize/dedupe/
+    computeSkillGap/collectUserSkills/buildTransitionsFromAnalysis/aggregateTopGaps)
+    + orchestrator `getCareerPaths`: O*NET-grounds each transition when configured
+    (`source:'onet'`), else AI-derived from `role_matching` (`source:'analysis'`),
+    `source:'none'` when no analysis. Never fabricates — only set-diffs real data.
+  - `controllers/careerPathController.js` + `routes/careerPathRoutes.js` (protected).
+  - Frontend: `features/career-paths/CareerPaths.tsx` (transition cards w/ shared+gap
+    chips, top-skill-gaps banner, data-source badge, empty-state CTA), `api/careerPaths.ts`,
+    `types/careerPaths.ts`; `/career-paths` route + nav.
+  - Tests: `careerPathService.test.js` (11) + `onetClient.test.js` (8). Suite = 32 green.
+  - **Security fix:** `cacheMiddleware` no longer shares a cached response across
+    authenticated requests (URL-only key would have leaked one user's data to
+    another on user-scoped GETs like discovery/career-paths once auth is on).
+  - Verified e2e (fallback): seeded analysis → correct shared/gap split + aggregated
+    top gaps (`source:'analysis'`); empty state returns `source:'none'`. **The live
+    O*NET HTTP path is unverified** (no creds in this env) — parsers are tested
+    against fixtures; smoke-test once `ONET_*` creds are added.
+- ⬜ Phases E–F: interactive interview agent, progress "tree". Courses provider
+  (Udemy/Coursera) still to pick — deferred from D.
+- **Review follow-ups (deferred, documented):** extract a shared `callOpenAIJson`
+  helper + move prompts to `services/prompts/` (do in the prompt-tuning/Phase-E
+  session where they're exercised); `cluster.isMaster`→`isPrimary`; Redis for
+  cache/rate-limit before horizontal scaling; CI + supertest route tests; lint-clean
+  the `any` in cv.ts/interview.ts.
 
 ### Phase 4 progress
 - ✅ Dashboard renders the full `/analyze` payload (archetype incl. inline shape,
