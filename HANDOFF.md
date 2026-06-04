@@ -53,7 +53,16 @@ go stateful (DB + real auth), first milestone = conversational discovery, real d
   its URL in `backend/.env` as `DATABASE_URL`; run `npm run db:migrate -- --name init`
   to create tables; create a **second Vercel project** rooted at `clerk-react` for
   staging/PR previews (leave production on `frontend/` until parity); flip auth on.
-- ⬜ Phase B: persist analyses; load Dashboard from DB; resolve `dashboard_scores`.
+- ✅ **Phase B (persist analyses) DONE + verified:** `db/analyses.js`
+  (`saveAnalysis`/`getLatestAnalysis`); `analyzeCV` best-effort saves per user;
+  new `GET /analyses/latest`; `getRequestUserId` in authMiddleware (real Clerk id,
+  or `local-dev-user` when auth is off so the loop is testable). Dashboard loads
+  the latest analysis from the DB when there's no router state (`cv.ts:getLatestAnalysis`).
+  Verified end-to-end via the preview (DB seed → `/dashboard` renders from DB, no
+  console errors). Note: the upload→save HTTP path reuses the same (tested)
+  `saveAnalysis`; not re-exercised via a live CV upload (avoids an OpenAI call).
+  - ⬜ `dashboard_scores` still deferred — belongs with the dashboard-depth/parity
+    UI session (needs prompt change + a ScoreCard render; not worth a half-step now).
 - ⬜ Phase C: conversational discovery agent + chat UI.
 - ⬜ Phases D–F: real data (O*NET + courses), interview agent, progress "tree".
 

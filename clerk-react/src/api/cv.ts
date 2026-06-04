@@ -81,6 +81,13 @@ export async function uploadCV(file: File, token?: string): Promise<CvAnalysis> 
   return normalize(raw);
 }
 
+// Fetch the signed-in user's most recent persisted analysis (or null if none).
+// The /analyses/latest route is protected, so a Clerk token is passed when present.
+export async function getLatestAnalysis(token?: string): Promise<CvAnalysis | null> {
+  const res = await apiClient.get<{ analysis: Record<string, any> | null }>('/analyses/latest', token);
+  return res?.analysis ? normalize(res.analysis) : null;
+}
+
 // Health check — true when the backend is reachable.
 export async function checkBackendStatus(): Promise<boolean> {
   try {
