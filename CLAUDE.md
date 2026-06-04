@@ -34,18 +34,19 @@ exists only as a source to port features from (see `HANDOFF.md`).
 backend/
   index.js            # app entry: middleware wiring, clustering, startup
   config/             # server.js (CORS, port), openai.js (model/tokens)
-  routes/             # cvRoutes, archetypeRoutes, interviewRoutes, healthRoutes
+  routes/             # cvRoutes, archetypeRoutes, interviewRoutes, discoveryRoutes, healthRoutes
   controllers/        # thin request handlers -> services
-  services/           # openaiService, fileProcessingService
+  services/           # openaiService, discoveryService, fileProcessingService
   middleware/         # authMiddleware (Clerk), rateLimit, cache, upload, errorHandler
   prisma/schema.prisma # Postgres data model (User, Analysis, DiscoverySession, ...)
-  db/                 # client.js (Prisma singleton), users.js (getOrCreateUser)
+  db/                 # client.js (Prisma singleton), users.js, analyses.js, discovery.js
+  test/               # node:test unit tests — run with `npm test`
 clerk-react/src/
   lib/                # apiClient (fetch + Clerk token), errorHandling
-  api/                # cv.ts (uploadCV, checkBackendStatus, validateCvFile)
-  features/           # cv-upload/, dashboard/, auth/
+  api/                # cv.ts, interview.ts, discovery.ts
+  features/           # cv-upload/, dashboard/, discovery/, mock-interviews/, auth/
   components/         # auth/ (ProtectedRoute), layout/ (Header)
-  types/analysis.ts   # CvAnalysis — the response contract
+  types/              # analysis.ts (CvAnalysis), interview.ts, discovery.ts — response contracts
 ```
 
 ## Common commands
@@ -66,8 +67,10 @@ cd clerk-react && npm run build                 # tsc -b && vite build (run befo
 cd clerk-react && npm run lint
 ```
 
-There are **no automated tests yet** (a known gap — see `HANDOFF.md`). Verify
-changes by running the app: backend `/health`, then the upload→dashboard flow.
+Test coverage is **minimal but started**: `backend/test/` has `node:test` unit
+tests for pure logic (run `cd backend && npm test`). There's no frontend test
+suite or CI yet (a known gap — see `HANDOFF.md`). Still verify behavioral changes
+by running the app: backend `/health`, then the upload→dashboard / discovery flow.
 
 ## Configuration
 

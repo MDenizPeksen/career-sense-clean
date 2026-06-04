@@ -5,8 +5,8 @@ Update the "Last updated" line and the relevant sections whenever you make
 meaningful progress.
 
 **Last updated:** 2026-06-04
-**Active branch:** `harden-and-deploy` (pushed; **PR #1** open → `main`; 10+ commits).
-Companion roadmap Phase A (DB foundation) started — see "Companion roadmap" below.
+**Active branch:** `companion-foundation` (→ base `harden-and-deploy`, **PR #2**; stacked
+on **PR #1** → `main`). Companion roadmap Phases A–C done — see "Companion roadmap" below.
 
 ---
 
@@ -63,8 +63,27 @@ go stateful (DB + real auth), first milestone = conversational discovery, real d
   `saveAnalysis`; not re-exercised via a live CV upload (avoids an OpenAI call).
   - ⬜ `dashboard_scores` still deferred — belongs with the dashboard-depth/parity
     UI session (needs prompt change + a ScoreCard render; not worth a half-step now).
-- ⬜ Phase C: conversational discovery agent + chat UI.
+- ✅ **Phase C (Conversational Discovery) DONE + verified:** a multi-turn intake
+  agent that asks adaptive follow-ups and emits a structured **enriched profile**.
+  - Backend: `services/discoveryService.js` (the agent — one question/turn, JSON
+    output, pure `parseAgentResponse`/`buildCvContext` exported for tests; pulls the
+    user's latest analysis in as context), `controllers/discoveryController.js`,
+    `routes/discoveryRoutes.js` (protected), registered under `/api/discovery`.
+    DB layer `db/discovery.js` (createSession / getSession / getActiveSession /
+    addMessage / completeSession) persists `DiscoverySession` + `Message`.
+    `config/openai.js` gained `discovery` + `interview` token/temperature.
+  - Frontend: `features/discovery/Discovery.tsx` (chat UI: resume active session,
+    optimistic send, completion → enriched-profile summary card), `api/discovery.ts`,
+    `types/discovery.ts`; `/discovery` protected route + header nav.
+  - Tests: `backend/test/discoveryService.test.js` (13 `node:test` cases on the
+    pure parse/normalize logic). `npm test` wired (`node --test "test/**/*.test.js"`).
+  - Verified end-to-end vs real gpt-4o-mini + Neon: start → adaptive multi-turn →
+    completion produced an accurate enriched profile (grounded in answers, not
+    fabricated); GET-by-id, latest-active (null after completion), and the 400/404
+    edge cases all check out. FE builds clean under strict TS. Test rows cleaned up.
 - ⬜ Phases D–F: real data (O*NET + courses), interview agent, progress "tree".
+  - **Phase D is the natural next step** — feed the discovery `enrichedProfile` +
+    CV analysis into O*NET-grounded role-shift + skill-gap, then real course links.
 
 ### Phase 4 progress
 - ✅ Dashboard renders the full `/analyze` payload (archetype incl. inline shape,
