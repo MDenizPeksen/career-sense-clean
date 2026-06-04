@@ -56,4 +56,26 @@ const requireAuth = (req, res, next) => {
   return next();
 };
 
-module.exports = { requireAuth, isClerkConfigured };
+// Stable id used for persistence when auth is bypassed locally, so the stateful
+// flows (saved analyses, etc.) are testable without a real Clerk session.
+const LOCAL_DEV_USER_ID = 'local-dev-user';
+
+/**
+ * Resolve the user id to scope persisted data to. Mirrors requireAuth's modes:
+ *   - auth disabled                 -> LOCAL_DEV_USER_ID (testing)
+ *   - Clerk not configured + dev    -> LOCAL_DEV_USER_ID (open in dev)
+ *   - Clerk not configured + prod   -> null (route is already 503'd)
+ *   - Clerk configured              -> the verified Clerk user id (or null)
+ * Routes using this should sit behind requireAuth.
+ * @returns {string|null}
+ */
+const getRequestUserId = (req) => {
+  if (!isAuthEnabled()) return LOCAL_DEV_USER_ID;
+  if (!isClerkConfigured()) {
+    return process.env.NODE_ENV === 'production' ? null : LOCAL_DEV_USER_ID;
+  }
+  const { userId } = getAuth(req);
+  return userId || null;
+};
+
+module.exports = { requireAuth, isClerkConfigured, getRequestUserId };

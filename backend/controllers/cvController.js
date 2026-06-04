@@ -1,7 +1,8 @@
 const openaiService = require('../services/openaiService');
 const fileService = require('../services/fileProcessingService');
-const fs = require('fs');
 const { ValidationError } = require('../utils/errors');
+const { getRequestUserId } = require('../middleware/authMiddleware');
+const { saveAnalysis, getLatestAnalysis } = require('../db/analyses');
 
 // CV analysis controller
 exports.analyzeCV = async (req, res, next) => {
@@ -20,6 +21,14 @@ exports.analyzeCV = async (req, res, next) => {
       // Analyze CV with OpenAI
       const analysis = await openaiService.analyzeCV(cvText);
 
+      // Best-effort persistence: never let a DB hiccup fail the analysis response.
+      const userId = getRequestUserId(req);
+      if (userId) {
+        saveAnalysis(userId, analysis).catch((err) =>
+          console.error('Failed to persist analysis:', err.message)
+        );
+      }
+
       return res.json(analysis);
     } finally {
       // Always clean up the uploaded temp file, on success or failure.
@@ -29,6 +38,20 @@ exports.analyzeCV = async (req, res, next) => {
     }
   } catch (error) {
     // Pass the error to the error handler middleware
+    next(error);
+  }
+};
+
+// Return the signed-in user's most recent analysis (or null).
+exports.getLatestAnalysis = async (req, res, next) => {
+  try {
+    const userId = getRequestUserId(req);
+    if (!userId) {
+      return res.json({ analysis: null });
+    }
+    const analysis = await getLatestAnalysis(userId);
+    return res.json({ analysis });
+  } catch (error) {
     next(error);
   }
 };

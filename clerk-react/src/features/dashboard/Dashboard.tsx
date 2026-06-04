@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import {
   Award,
   Briefcase,
@@ -11,8 +12,10 @@ import {
   Lightbulb,
   MessageSquare,
   Rocket,
+  Loader2,
 } from 'lucide-react';
 import type { CvAnalysis, ArchetypeData } from '../../types/analysis';
+import { getLatestAnalysis } from '../../api/cv';
 
 const Pill: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <span className="inline-block bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-full">{children}</span>
@@ -80,7 +83,44 @@ function archetypeGrowth(a: ArchetypeData): string[] {
 const Dashboard: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const analysis = (location.state as { analysisResult?: CvAnalysis } | null)?.analysisResult;
+  const { getToken } = useAuth();
+
+  // A freshly uploaded analysis arrives via router state; otherwise load the
+  // user's most recent persisted analysis from the backend.
+  const fromState = (location.state as { analysisResult?: CvAnalysis } | null)?.analysisResult ?? null;
+  const [analysis, setAnalysis] = useState<CvAnalysis | null>(fromState);
+  const [loading, setLoading] = useState(!fromState);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (fromState) return; // already have it from the upload flow
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    getToken()
+      .then((token) => getLatestAnalysis(token ?? undefined))
+      .then((result) => {
+        if (!cancelled) setAnalysis(result);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load your analysis.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fromState, getToken]);
+
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-20 text-gray-500">
+        <Loader2 size={32} className="mx-auto mb-4 animate-spin text-blue-600" />
+        <p>Loading your analysis…</p>
+      </div>
+    );
+  }
 
   if (!analysis) {
     return (
@@ -90,6 +130,7 @@ const Dashboard: React.FC = () => {
         </div>
         <h1 className="text-2xl font-bold text-gray-800 mb-3">No analysis yet</h1>
         <p className="text-gray-600 mb-8">Upload your CV to see your personalized career analysis here.</p>
+        {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
         <button
           onClick={() => navigate('/upload')}
           className="px-6 py-3 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-colors"
