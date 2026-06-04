@@ -1,54 +1,44 @@
-# React + TypeScript + Vite
+# CareerSense — frontend (`clerk-react`)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The **canonical** CareerSense frontend: Vite + React 19 + TypeScript (strict) +
+Tailwind CSS, with Clerk for auth. This is the app to build on. (The legacy
+`../frontend` CRA app is reference-only and being retired — see the root
+[`README.md`](../README.md) and [`CLAUDE.md`](../CLAUDE.md).)
 
-Currently, two official plugins are available:
+## Develop
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+cp .env.example .env.local     # set VITE_API_URL, VITE_CLERK_PUBLISHABLE_KEY, VITE_AUTH_ENABLED
+npm install
+npm run dev                    # http://localhost:3000
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Needs the backend running on its port (default 5001) — see the root README.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+npm run dev      # Vite dev server
+npm run build    # tsc -b && vite build  (run before committing FE changes)
+npm run lint     # ESLint
+npm run preview  # serve the production build locally
+```
+
+## Conventions
+
+- **Strict TS** (`noUnusedLocals`/`noUnusedParameters`) — unused imports fail the build.
+- Data fetching goes through `src/lib/apiClient.ts` (adds the Clerk token); per-feature
+  services live in `src/api/*`, response contracts in `src/types/*`.
+- Icons: `lucide-react`. Animation: `framer-motion`. Styling: Tailwind utilities (no CSS-in-JS).
+- The API base URL comes from `VITE_API_URL` — never hardcode a host.
+
+## Layout
+
+```
+src/
+  lib/         # apiClient, errorHandling
+  api/         # cv.ts, interview.ts, discovery.ts, careerPaths.ts
+  features/    # home/, cv-upload/, dashboard/, discovery/, career-paths/, mock-interviews/, auth/
+  components/  # auth/ (ProtectedRoute), layout/ (Header, Footer)
+  types/       # analysis.ts, interview.ts, discovery.ts, careerPaths.ts
 ```

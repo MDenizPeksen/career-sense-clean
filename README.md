@@ -1,192 +1,95 @@
 # CareerSense
 
-CareerSense is an AI-powered career guidance platform that helps users optimize their professional development through CV analysis, personalized career path suggestions, and interview preparation.
+CareerSense is an AI career-guidance app that is evolving from a one-shot CV
+analyzer into a **stateful career companion** for people changing careers or
+levelling up. Upload a CV and it returns a structured analysis; from there you
+can have a guided **discovery** conversation, see **career paths** you can shift
+into (with the skills you have vs. the ones to build), and practice **mock
+interviews**.
 
-> **Migration Note**: This project has been restructured from a previous version to follow a clean, modular architecture. The new structure aims to improve clarity, maintainability, and scalability while following modern development practices.
+> **📍 Source of truth:** This README is a high-level overview. The always-current
+> working docs are **[`CLAUDE.md`](CLAUDE.md)** (architecture, conventions,
+> commands, gotchas) and **[`HANDOFF.md`](HANDOFF.md)** (status, what's done,
+> what's next). When in doubt, trust those two over anything else in the repo.
 
-## Project Structure
+## ⚠️ Repo layout — read this first
 
-This project follows a clean, modular architecture with strict separation between frontend and backend:
+There are **three** top-level app folders; one is being retired:
 
-```
-career-sense-clean/
-├── backend/               # Node.js Express server
-│   ├── index.js           # Main server file
-│   ├── routes/            # API route definitions
-│   ├── controllers/       # Request handlers
-│   ├── services/          # Business logic
-│   ├── middleware/        # Express middleware
-│   ├── models/            # Data models
-│   └── uploads/           # File uploads
-│
-└── frontend/              # React TypeScript application
-    ├── public/            # Static assets
-    │   └── assets/        # Images, icons, fonts
-    └── src/
-        ├── api/           # API communication layer
-        ├── assets/        # Styles and images
-        ├── components/    # Reusable UI components
-        │   ├── common/    # Shared components
-        │   ├── layout/    # Layout components
-        │   └── ui/        # UI components
-        ├── features/      # Feature modules
-        │   ├── home/
-        │   ├── dashboard/
-        │   ├── cv-upload/
-        │   ├── career-paths/
-        │   └── mock-interviews/
-        └── router/        # Application routing
-```
+| Folder         | Stack                            | Status |
+|----------------|----------------------------------|--------|
+| `backend/`     | Node + Express (CommonJS)        | **Active.** The API. Stateful (Postgres via Prisma). |
+| `clerk-react/` | Vite + React 19 + TS + Tailwind  | **Active / canonical frontend.** Build here. |
+| `frontend/`    | CRA + webpack + React 18         | **Legacy reference only.** Being ported FROM, then deleted. Don't add features here. |
 
-## Architecture Overview
+When a task says "the frontend," it means **`clerk-react/`**. `frontend/` only
+exists as a source to port remaining features/visuals from.
 
-### Backend Architecture
+> Note: Production Vercel still builds the legacy `frontend/` until the new app
+> reaches visual+feature parity — see `HANDOFF.md` for the cutover plan.
 
-The backend follows a modular structure with clear separation of concerns:
+## What it does
 
-- **Routes**: Define API endpoints and connect them to controllers
-- **Controllers**: Handle HTTP requests and responses
-- **Services**: Contain business logic and interact with external APIs
-- **Middleware**: Process requests before they reach route handlers
-- **Models**: Define data structures (when using a database)
+- **CV analysis** — upload PDF/DOCX → profile, strengths, role matches, résumé
+  optimization, STAR stories, a learning roadmap, and a career archetype.
+- **Conversational discovery** — a multi-turn agent that asks adaptive questions
+  to understand your goals/constraints and produces an enriched profile.
+- **Career paths** — real role-shift options with a per-role **shared vs. gap**
+  skill breakdown (grounded in O*NET labor data when configured; AI-derived
+  otherwise).
+- **Mock interviews** — role/level-specific practice questions.
 
-The backend uses Express.js and integrates with OpenAI's GPT-4o-mini model for AI-powered career insights and CV analysis.
+## Tech stack
 
-### Frontend Architecture
+- **Backend:** Node + Express, layered `routes → controllers → services → db`,
+  OpenAI (`gpt-4o-mini`), Prisma + Postgres (Neon), Clerk auth, Multer + pdf-parse
+  + mammoth for uploads.
+- **Frontend:** Vite + React 19 + TypeScript (strict), Tailwind CSS,
+  framer-motion, lucide-react, Clerk.
+- **Data:** O*NET Web Services (optional, for real labor-market data).
 
-The frontend is organized using a feature-based approach:
+## Getting started
 
-- **Components**: Reusable UI elements organized by type (common, layout, UI)
-- **Features**: Feature-specific components and logic grouped together
-- **API Layer**: Centralized communication with the backend
-- **Router**: Application routing with lazy-loaded components
-- **Assets**: Styles and images
-
-The frontend uses React with TypeScript and Tailwind CSS for styling, following a utility-first approach.
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v14 or higher)
-- npm or yarn
-- OpenAI API key (for backend AI functionality)
-
-### Environment Setup
-
-1. **Backend Environment**:
-   ```bash
-   cd backend
-   cp .env.example .env
-   ```
-   Edit the `.env` file and add your OpenAI API key:
-   ```
-   OPENAI_API_KEY=your_api_key_here
-   ```
-
-2. **Frontend Environment** (optional):
-   ```bash
-   cd frontend
-   cp .env.example .env
-   ```
-
-### Installation
-
-1. **Backend Setup**:
-   ```bash
-   cd backend
-   npm install
-   ```
-
-2. **Frontend Setup**:
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-### Running the Application
-
-You'll need two terminal windows to run both the frontend and backend simultaneously.
-
-1. **Start the Backend**:
-   ```bash
-   cd backend
-   npm start
-   ```
-   The backend will run on http://localhost:5001
-
-2. **Start the Frontend**:
-   ```bash
-   cd frontend
-   npm start
-   ```
-   The frontend will run on http://localhost:3000
-
-### Advanced: Running Both Simultaneously (Optional)
-
-If you want to run both frontend and backend with a single command, you can install `concurrently` in the root directory:
+Prereqs: Node ≥ 18, npm, an OpenAI API key, and a Postgres database (Neon is the
+default). Copy the `.env.example` templates and fill them in (real `.env` files
+are gitignored).
 
 ```bash
-npm install --save-dev concurrently
-```
+# Backend (port 5001)
+cd backend
+cp .env.example .env          # then fill in OPENAI_API_KEY, DATABASE_URL, etc.
+npm install
+npm run db:migrate            # create tables (first time)
+npm run dev
 
-Then add this script to the root `package.json`:
-
-```json
-"scripts": {
-  "dev": "concurrently \"cd backend && npm start\" \"cd frontend && npm start\""
-}
-```
-
-And run both with:
-
-```bash
+# Frontend (port 3000) — in a second terminal
+cd clerk-react
+cp .env.example .env.local    # then fill in VITE_API_URL, VITE_CLERK_*
+npm install
 npm run dev
 ```
 
-## Features
+Open <http://localhost:3000>. Auth can be paused for local testing via
+`AUTH_ENABLED=false` (backend) and `VITE_AUTH_ENABLED=false` (frontend) — see the
+auth-toggle section in `CLAUDE.md`. Re-enable before deploying.
 
-- **CV Analysis**: Upload your CV for AI-powered analysis of strengths and areas for improvement
-- **Career Path Suggestions**: Get personalized recommendations based on your skills and experience
-- **STAR-based Interview Stories**: Generate structured interview responses from your experiences
-- **Mock Interview Simulation**: Practice with AI-generated scenarios and receive feedback
-- **Modern UI**: Clean, responsive interface with smooth animations
+Common commands (full list in `CLAUDE.md`):
 
-## Technology Stack
-
-### Frontend
-- React 18 with TypeScript
-- Tailwind CSS for styling
-- Framer Motion for animations
-- Ant Design for UI components
-- React Router for navigation
-- Axios for API communication
-
-### Backend
-- Node.js with Express
-- OpenAI API (gpt-4o-mini model) for AI capabilities
-- Multer for file uploads
-- PDF-Parse and Mammoth for document parsing
-- Compression and caching middleware for performance
-
-## Performance Optimizations
-
-The application includes several performance optimizations:
-
-- **Backend**: Compression middleware, response caching, and rate limiting
-- **Frontend**: Component memoization, API response caching, and lazy loading
-- **Error Handling**: Comprehensive error boundaries and centralized error handling
+```bash
+cd backend && npm test          # node:test unit tests
+cd backend && npm run db:studio # browse the database
+cd clerk-react && npm run build # tsc -b && vite build (run before committing FE changes)
+```
 
 ## Documentation
 
-- **API Documentation**: See [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md)
-- **Component Documentation**: See [docs/COMPONENT_DOCUMENTATION.md](docs/COMPONENT_DOCUMENTATION.md)
-- **Contributing Guidelines**: See [CONTRIBUTING.md](CONTRIBUTING.md)
-
-## Contributing
-
-Please see our [CONTRIBUTING.md](CONTRIBUTING.md) file for detailed information on how to contribute to this project.
+- **[`CLAUDE.md`](CLAUDE.md)** — architecture, conventions, commands, gotchas (living).
+- **[`HANDOFF.md`](HANDOFF.md)** — current status and roadmap (living).
+- **[`DEPLOYMENT.md`](DEPLOYMENT.md)** — Render + Vercel + Clerk + DB walkthrough.
+- **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — contribution guidelines.
+- `docs/API_DOCUMENTATION.md`, `docs/COMPONENT_DOCUMENTATION.md` — **partially
+  stale** (describe the legacy `frontend/`); see the banners inside them.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT — see [LICENSE](LICENSE).
