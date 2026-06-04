@@ -24,9 +24,17 @@ const cacheMiddleware = (duration = 300, keyGenerator = null) => {
       return next();
     }
 
+    // Never share a cached response across authenticated requests. The default
+    // cache key is the URL only, so user-scoped endpoints (e.g.
+    // /api/discovery/sessions/latest) would otherwise serve one user's data to
+    // another. A custom keyGenerator can opt back in to per-user caching.
+    if (!keyGenerator && req.headers.authorization) {
+      return next();
+    }
+
     // Generate cache key
-    const key = keyGenerator ? 
-      keyGenerator(req) : 
+    const key = keyGenerator ?
+      keyGenerator(req) :
       `${req.originalUrl || req.url}`;
 
     // Check if we have a cache hit

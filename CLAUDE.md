@@ -34,19 +34,19 @@ exists only as a source to port features from (see `HANDOFF.md`).
 backend/
   index.js            # app entry: middleware wiring, clustering, startup
   config/             # server.js (CORS, port), openai.js (model/tokens)
-  routes/             # cvRoutes, archetypeRoutes, interviewRoutes, discoveryRoutes, healthRoutes
+  routes/             # cv, archetype, interview, discovery, careerPath, health
   controllers/        # thin request handlers -> services
-  services/           # openaiService, discoveryService, fileProcessingService
+  services/           # openaiService, discoveryService, careerPathService, data/onetClient, fileProcessingService
   middleware/         # authMiddleware (Clerk), rateLimit, cache, upload, errorHandler
   prisma/schema.prisma # Postgres data model (User, Analysis, DiscoverySession, ...)
   db/                 # client.js (Prisma singleton), users.js, analyses.js, discovery.js
   test/               # node:test unit tests — run with `npm test`
 clerk-react/src/
   lib/                # apiClient (fetch + Clerk token), errorHandling
-  api/                # cv.ts, interview.ts, discovery.ts
-  features/           # cv-upload/, dashboard/, discovery/, mock-interviews/, auth/
+  api/                # cv.ts, interview.ts, discovery.ts, careerPaths.ts
+  features/           # cv-upload/, dashboard/, discovery/, career-paths/, mock-interviews/, auth/
   components/         # auth/ (ProtectedRoute), layout/ (Header)
-  types/              # analysis.ts (CvAnalysis), interview.ts, discovery.ts — response contracts
+  types/              # analysis.ts, interview.ts, discovery.ts, careerPaths.ts — response contracts
 ```
 
 ## Common commands
