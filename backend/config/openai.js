@@ -15,11 +15,15 @@ module.exports = {
   maxTokens: {
     cv: 2500,
     archetype: 1500,
+    interview: 1000,
+    discovery: 900,    // one adaptive turn (a question) or the final enriched profile
     test: 10
   },
   temperature: {
     cv: num(process.env.OPENAI_TEMPERATURE, 0.5), // More deterministic for CV analysis
     archetype: 0.7,    // Slightly more creative for archetype classification
+    interview: 0.7,    // Some variety across generated question sets
+    discovery: 0.6,    // Conversational but focused — adaptive yet on-task
     test: 0.0          // Completely deterministic for connection testing
   },
   timeout: 60000        // 60 seconds timeout for API calls
