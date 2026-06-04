@@ -8,48 +8,49 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
 ## Project Structure
 
-Please follow our established project structure as outlined in the README.md. This project follows a clean, modular architecture with strict separation between frontend and backend:
+See **[`CLAUDE.md`](CLAUDE.md)** for the authoritative, current layout and
+conventions. In brief, the active code lives in two folders (a third, `frontend/`,
+is **legacy/reference-only** and is being retired — don't build there):
 
 ```
 career-sense-clean/
-├── backend/               # Node.js Express server
-│   ├── index.js           # Main server file
-│   ├── routes/            # API route definitions
-│   ├── controllers/       # Request handlers
-│   ├── services/          # Business logic
-│   ├── middleware/        # Express middleware
-│   ├── models/            # Data models
-│   └── uploads/           # File uploads
+├── backend/               # Node + Express API (CommonJS), stateful (Postgres via Prisma)
+│   ├── index.js           # App entry: middleware wiring, startup
+│   ├── config/            # server.js (CORS/port), openai.js (model/tokens)
+│   ├── routes/            # route definitions  -> controllers
+│   ├── controllers/       # thin request handlers -> services
+│   ├── services/          # business logic (openaiService, discoveryService, careerPathService, data/)
+│   ├── middleware/        # auth (Clerk), rate limit, cache, upload, errorHandler
+│   ├── db/                # Prisma client + access helpers (users, analyses, discovery)
+│   ├── prisma/            # schema.prisma + migrations
+│   ├── test/              # node:test unit tests
+│   └── uploads/           # temporary file uploads (swept hourly)
 │
-└── frontend/              # React TypeScript application
-    ├── public/            # Static assets
+└── clerk-react/           # Canonical frontend: Vite + React 19 + TS + Tailwind
     └── src/
-        ├── api/           # API communication layer
-        ├── assets/        # Styles and images
-        ├── components/    # Reusable UI components
-        │   ├── common/    # Shared components
-        │   ├── layout/    # Layout components
-        │   └── ui/        # UI components
-        ├── features/      # Feature modules
-        └── router/        # Application routing
+        ├── lib/           # apiClient (fetch + Clerk token), errorHandling
+        ├── api/           # per-feature service modules
+        ├── features/      # feature modules (cv-upload, dashboard, discovery, career-paths, ...)
+        ├── components/    # auth/ (ProtectedRoute), layout/ (Header, Footer)
+        └── types/         # response contracts
 ```
 
 ## Development Guidelines
 
-### Backend (Node.js/Express)
+### Backend (Node.js/Express, CommonJS)
 
-1. **Modular Structure**: Follow the modular backend structure with routes, controllers, and services.
-2. **Error Handling**: Use the centralized error handling middleware.
-3. **Environment Variables**: Store configuration in environment variables, documented in `.env.example`.
-4. **API Documentation**: Update the API documentation in `docs/API_DOCUMENTATION.md` when adding or modifying endpoints.
+1. **Layered structure**: keep the `routes → controllers → services → db` flow; controllers stay thin.
+2. **Error handling**: throw the custom errors in `utils/errors.js`; the central `errorHandler` formats responses.
+3. **Environment variables**: store config in env vars, documented in `backend/.env.example` (never commit a real `.env`).
+4. **Never fabricate AI output**: normalization may reshape/rename fields but must not invent roles, skills, salaries, etc.
+5. **Tests**: add `node:test` unit tests under `backend/test/` for pure logic; run `npm test`.
 
-### Frontend (React/TypeScript)
+### Frontend (React/TypeScript, `clerk-react`)
 
-1. **Feature-Based Organization**: Group components by feature in the `features/` directory.
-2. **Component Documentation**: Document components in `docs/COMPONENT_DOCUMENTATION.md`.
-3. **Styling**: Use Tailwind CSS for styling. Avoid custom CSS when possible.
-4. **Error Boundaries**: Implement error boundaries for feature components.
-5. **Performance**: Use memoization and other performance optimizations where appropriate.
+1. **Feature-based organization**: group components by feature under `src/features/`.
+2. **Strict TS**: `noUnusedLocals`/`noUnusedParameters` are on — unused imports fail the build. Run `npm run build` before committing FE changes.
+3. **API access**: go through `src/lib/apiClient.ts`; put services in `src/api/*` and contracts in `src/types/*`. Never hardcode the API host — use `VITE_API_URL`.
+4. **Styling**: Tailwind utilities (no CSS-in-JS). Icons: `lucide-react`. Animation: `framer-motion`.
 
 ## Pull Request Process
 

@@ -1,5 +1,13 @@
 # CareerSense Component Documentation
 
+> **⚠️ LEGACY — describes the retired `frontend/` (Create-React-App) UI, NOT the
+> current frontend.** The canonical frontend is now **`clerk-react/`** (Vite +
+> React 19 + TS); its components and conventions are documented in
+> [`../clerk-react/README.md`](../clerk-react/README.md) and
+> [`../CLAUDE.md`](../CLAUDE.md). The paths and props below (e.g.
+> `/frontend/src/components/...`) no longer match the active code and are kept
+> only as historical reference until `frontend/` is deleted.
+
 This document provides details about the key components in the CareerSense frontend application.
 
 ## Table of Contents

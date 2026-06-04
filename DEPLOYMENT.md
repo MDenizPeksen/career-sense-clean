@@ -1,12 +1,14 @@
 # Deploying CareerSense
 
-CareerSense has two deployable pieces:
+CareerSense has two deployable pieces plus a database:
 
 - **Backend** (`backend/`) — Express API → **Render** (or Railway).
 - **Frontend** (`clerk-react/`) — Vite + React app → **Vercel**.
+- **Database** — Postgres (via Prisma) → **Neon** (serverless).
 
 Auth is handled by **Clerk**; the backend verifies Clerk session tokens on the
-expensive routes, so both halves must point at the same Clerk instance.
+expensive routes, so both halves must point at the same Clerk instance. The
+backend is **stateful** — it needs a `DATABASE_URL` and applied migrations.
 
 ---
 
@@ -19,6 +21,12 @@ expensive routes, so both halves must point at the same Clerk instance.
    production instance. Note the **Publishable key** (`pk_live_…`) and
    **Secret key** (`sk_live_…`). Add your production frontend domain to Clerk's
    allowed origins once you know the Vercel URL.
+3. **Neon Postgres database.** Create a project at <https://neon.tech>, copy the
+   connection string (include `?sslmode=require`). This is the backend's
+   `DATABASE_URL`. (Optional) **O*NET** — for real career-path data, register at
+   <https://services.onetcenter.org/developer/signup> and note the
+   `ONET_USERNAME` / `ONET_PASSWORD`; without them, career paths fall back to
+   AI-derived data automatically.
 
 ---
 
@@ -31,12 +39,18 @@ Option A — **Blueprint** (uses `render.yaml`):
    start `node index.js`, health check `/health`).
 3. Fill in the secret env vars when prompted:
    - `OPENAI_API_KEY` — the rotated key
+   - `DATABASE_URL` — the Neon connection string (`?sslmode=require`)
    - `CLERK_SECRET_KEY` — `sk_live_…`
    - `CLERK_PUBLISHABLE_KEY` — `pk_live_…`
    - `ALLOWED_ORIGINS` — your Vercel URL (set after step 2; can start as a
      placeholder and update)
+   - `ONET_USERNAME` / `ONET_PASSWORD` — optional (real career-path data)
    - `NODE_ENV=production` is set by the blueprint.
-4. Deploy. Confirm `https://<your-backend>.onrender.com/health` returns `status: ok`.
+4. **Apply migrations** against the Neon DB (one-time per schema change). Either
+   add `npm run db:deploy` to the Render build/release step, or run it once
+   locally with the production `DATABASE_URL`:
+   `cd backend && DATABASE_URL="<neon-url>" npm run db:deploy`.
+5. Deploy. Confirm `https://<your-backend>.onrender.com/health` returns `status: ok`.
 
 Option B — **Manual web service:** same settings entered by hand (root directory
 `backend`, build `npm ci`, start `node index.js`, health check path `/health`).
@@ -77,9 +91,11 @@ Option B — **Manual web service:** same settings entered by hand (root directo
 |----------|------------------------------|----------------------------------------|
 | Backend  | `NODE_ENV`                   | `production`                           |
 | Backend  | `OPENAI_API_KEY`             | rotated `sk-…` key                     |
+| Backend  | `DATABASE_URL`               | Neon Postgres URL (`?sslmode=require`) |
 | Backend  | `CLERK_SECRET_KEY`           | `sk_live_…`                            |
 | Backend  | `CLERK_PUBLISHABLE_KEY`      | `pk_live_…`                            |
 | Backend  | `ALLOWED_ORIGINS`            | `https://career-sense.vercel.app`      |
+| Backend  | `ONET_USERNAME` / `ONET_PASSWORD` | optional — real career-path data  |
 | Backend  | `PORT`                       | injected by Render automatically       |
 | Frontend | `VITE_API_URL`               | `https://<backend>.onrender.com`       |
 | Frontend | `VITE_CLERK_PUBLISHABLE_KEY` | `pk_live_…`                            |
