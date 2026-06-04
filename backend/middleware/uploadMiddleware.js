@@ -2,6 +2,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const serverConfig = require('../config/server');
+const { ValidationError } = require('../utils/errors');
 
 // File size limit from config
 const MAX_FILE_SIZE = serverConfig.fileUpload.maxSize;
@@ -30,7 +31,7 @@ const fileFilter = (req, file, cb) => {
   if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error(`Unsupported file type: ${file.mimetype}. Please upload a PDF, DOC, or DOCX file.`), false);
+    cb(new ValidationError(`Unsupported file type: ${file.mimetype}. Please upload a PDF, DOC, or DOCX file.`), false);
   }
 };
 
