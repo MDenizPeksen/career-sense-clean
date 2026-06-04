@@ -101,7 +101,13 @@ Open http://localhost:3000 → "Analyze my CV" → upload a PDF/DOCX → dashboa
 
 ## Open items / watch-outs
 
-- PR for `harden-and-deploy` not yet opened (no GitHub auth on the machine).
+- **Uncommitted partial change** in `backend/middleware/uploadMiddleware.js`
+  (from the spawned "uploads should 400" task): swaps `Error` → `ValidationError`
+  in `fileFilter` so unsupported types return 400. Still TODO in that task:
+  surface multer size-limit / `MulterError`s as 400 too, then commit. Decide
+  whether to finish it here or via that task's own worktree (avoid double-commit).
+- PR for `harden-and-deploy` not yet opened (no GitHub auth on the machine —
+  needs `gh auth login` or a PAT; PR body saved at `/tmp/careersense_pr_body.md`).
 - No automated tests yet.
 - `docs/API_DOCUMENTATION.md` and `docs/COMPONENT_DOCUMENTATION.md` are stale
   (describe the old CRA frontend).
