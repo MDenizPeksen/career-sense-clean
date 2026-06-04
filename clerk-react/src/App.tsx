@@ -6,6 +6,7 @@ import Footer from './components/layout/Footer'
 import Home from './features/home/Home'
 import CvUpload from './features/cv-upload/CvUpload'
 import Dashboard from './features/dashboard/Dashboard'
+import MockInterviews from './features/mock-interviews/MockInterviews'
 import './App.css'
 
 function App() {
@@ -34,6 +35,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/interviews"
+              element={
+                <ProtectedRoute>
+                  <MockInterviews />
                 </ProtectedRoute>
               }
             />
