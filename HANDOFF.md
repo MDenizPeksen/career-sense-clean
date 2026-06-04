@@ -5,7 +5,8 @@ Update the "Last updated" line and the relevant sections whenever you make
 meaningful progress.
 
 **Last updated:** 2026-06-04
-**Active branch:** `harden-and-deploy` (pushed; **PR #1** open → `main`; 10 commits)
+**Active branch:** `harden-and-deploy` (pushed; **PR #1** open → `main`; 10+ commits).
+Companion roadmap Phase A (DB foundation) started — see "Companion roadmap" below.
 
 ---
 
@@ -22,7 +23,9 @@ testing** (`AUTH_ENABLED=false`, `VITE_AUTH_ENABLED=false`).
 - **Frontend:** rebuild on `clerk-react/` (Vite + React 19). `frontend/` (CRA)
   is reference-only and will be deleted once features are ported.
 - **Hosting:** backend → Render/Railway; frontend → Vercel.
-- **Persistence:** stay stateless (no DB) for now.
+- **Persistence:** ~~stay stateless~~ **NOW STATEFUL** — evolving into a career
+  companion. Postgres via Prisma (`backend/prisma/schema.prisma`, `backend/db/`).
+  See the roadmap plan: `~/.claude/plans/yes-absolutely-after-that-resilient-thompson.md`.
 - **Auth:** Clerk, with server-side token verification — currently toggled off
   for testing, re-enable before deploy.
 
@@ -35,6 +38,24 @@ testing** (`AUTH_ENABLED=false`, `VITE_AUTH_ENABLED=false`).
 | 2 | Port CV-upload → analysis flow onto Vite | ✅ Done |
 | 3 | Deploy (Render + Vercel + Clerk) | ⏳ Config scaffolded; live setup needs user accounts/secrets |
 | 4 | Port remaining features; remove `frontend/`; tests + CI | 🔄 In progress |
+| 5 | **Career companion** (stateful: DB + agents + real data) | 🔄 Phase A started |
+
+### Companion roadmap (Phase 5) — see the plan file
+Plan: `~/.claude/plans/yes-absolutely-after-that-resilient-thompson.md`. Decisions:
+go stateful (DB + real auth), first milestone = conversational discovery, real data
+(paid OK).
+- ✅ **Phase A (DB foundation, code part):** Prisma 6 + Postgres added to `backend/`.
+  `prisma/schema.prisma` (User, Analysis, DiscoverySession, Message, Roadmap,
+  RoadmapItem, SkillProgress, InterviewSession); `db/client.js` (singleton),
+  `db/users.js` (`getOrCreateUser`). `postinstall: prisma generate` + `db:*` scripts.
+  Schema validates, client generates, modules require cleanly.
+- ⬜ **Phase A (user actions / not yet done):** create a **Neon** Postgres DB and put
+  its URL in `backend/.env` as `DATABASE_URL`; run `npm run db:migrate -- --name init`
+  to create tables; create a **second Vercel project** rooted at `clerk-react` for
+  staging/PR previews (leave production on `frontend/` until parity); flip auth on.
+- ⬜ Phase B: persist analyses; load Dashboard from DB; resolve `dashboard_scores`.
+- ⬜ Phase C: conversational discovery agent + chat UI.
+- ⬜ Phases D–F: real data (O*NET + courses), interview agent, progress "tree".
 
 ### Phase 4 progress
 - ✅ Dashboard renders the full `/analyze` payload (archetype incl. inline shape,
