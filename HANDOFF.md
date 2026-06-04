@@ -4,7 +4,7 @@ Living status doc — what's done, what's next, and how to pick the work back up
 Update the "Last updated" line and the relevant sections whenever you make
 meaningful progress.
 
-**Last updated:** 2026-06-03
+**Last updated:** 2026-06-04
 **Active branch:** `harden-and-deploy` (not yet merged to `main` or pushed; 8 commits)
 
 ---
@@ -41,7 +41,15 @@ testing** (`AUTH_ENABLED=false`, `VITE_AUTH_ENABLED=false`).
   STAR stories, future growth, career-dev insights, resume recommendations).
   Verified end-to-end against a real `gpt-4o-mini` analysis.
 - ✅ Polished landing page (`features/home/Home.tsx`), sticky footer, header nav.
-- ⬜ Mock Interviews page (backend `/api/interview/questions` exists).
+- ✅ Mock Interviews page (`features/mock-interviews/MockInterviews.tsx`): role +
+  experience-level form → `/api/interview/questions` → question cards with
+  category/difficulty badges and collapsible STAR tips. Wired into routing
+  (`/interviews`, protected) and header nav. New `api/interview.ts` service +
+  `types/interview.ts`. Verified end-to-end against `gpt-4o-mini`.
+  - Backend fix: `generateInterviewQuestions` was returning `[]` because the
+    model wrapped the array under a non-`questions` key. Tightened the prompt to
+    pin the exact `{ "questions": [...] }` shape and made parsing fall back to a
+    top-level array / first array-valued property.
 - ⬜ Career Paths / profile / legal pages.
 - ⬜ Remove `frontend/`; refresh `README.md` + `docs/*`.
 - ⬜ Tests + CI.

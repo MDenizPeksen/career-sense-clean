@@ -314,12 +314,18 @@ Generate a set of 5 interview questions for a ${role} position at the ${level} l
 - Behavioral questions to assess soft skills
 - Problem-solving scenarios relevant to the position
 
-For each question, include:
-- The question text
-- The category (Technical, Behavioral, Problem-solving)
-- The difficulty level (Easy, Medium, Hard)
+Return ONLY a valid JSON object with exactly this structure:
+{
+  "questions": [
+    {
+      "question": "The full question text",
+      "category": "One of: Technical, Behavioral, Problem-solving",
+      "difficulty": "One of: Easy, Medium, Hard"
+    }
+  ]
+}
 
-Format your response as a structured JSON array of questions.
+The top-level key MUST be "questions" and its value MUST be an array of 5 objects.
 `;
 
 // Generate interview questions with OpenAI
@@ -343,7 +349,16 @@ const generateInterviewQuestions = async (role, level) => {
     
     try {
       const parsedContent = JSON.parse(content);
-      return parsedContent.questions || [];
+      // Prefer the documented `questions` key; fall back to a top-level array or
+      // the first array-valued property if the model wraps it under another name.
+      if (Array.isArray(parsedContent.questions)) {
+        return parsedContent.questions;
+      }
+      if (Array.isArray(parsedContent)) {
+        return parsedContent;
+      }
+      const firstArray = Object.values(parsedContent).find((v) => Array.isArray(v));
+      return firstArray || [];
     } catch (parseError) {
       console.error('Error parsing OpenAI response:', parseError);
       throw new OpenAIError(
