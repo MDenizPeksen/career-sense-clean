@@ -6,7 +6,15 @@ meaningful progress.
 
 **Last updated:** 2026-06-04
 **Active branch:** `companion-foundation` (→ base `harden-and-deploy`, **PR #2**; stacked
-on **PR #1** → `main`). Companion roadmap Phases A–C done — see "Companion roadmap" below.
+on **PR #1** → `main`). Companion roadmap Phases A–D done; docs refreshed — see below.
+
+> ⏳ **Waiting on O*NET approval.** Registered for O*NET Web Services as org
+> "CareerSense" (Step 5/5 submitted; pending email approval). When the approval
+> email + credentials arrive: add `ONET_USERNAME`/`ONET_PASSWORD` to `backend/.env`,
+> boot the backend, and **smoke-test the live Career Paths path** (`GET /api/career-paths`
+> should return `source:"onet"` with O*NET codes). The parsers are fixture-tested but
+> the live HTTP endpoints (search / related_occupations / details/skills) have NOT
+> been hit yet — adjust `services/data/onetClient.js` paths if O*NET's live shapes differ.
 
 ---
 
