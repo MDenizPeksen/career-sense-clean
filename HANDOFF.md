@@ -5,7 +5,7 @@ Update the "Last updated" line and the relevant sections whenever you make
 meaningful progress.
 
 **Last updated:** 2026-06-04
-**Active branch:** `harden-and-deploy` (not yet merged to `main` or pushed; 8 commits)
+**Active branch:** `harden-and-deploy` (pushed; **PR #1** open → `main`; 10 commits)
 
 ---
 
@@ -114,8 +114,16 @@ Open http://localhost:3000 → "Analyze my CV" → upload a PDF/DOCX → dashboa
   in `fileFilter` so unsupported types return 400. Still TODO in that task:
   surface multer size-limit / `MulterError`s as 400 too, then commit. Decide
   whether to finish it here or via that task's own worktree (avoid double-commit).
-- PR for `harden-and-deploy` not yet opened (no GitHub auth on the machine —
-  needs `gh auth login` or a PAT; PR body saved at `/tmp/careersense_pr_body.md`).
+- **PR #1** is open (`harden-and-deploy` → `main`):
+  https://github.com/MDenizPeksen/career-sense-clean/pull/1
+- **Vercel still builds the legacy `frontend/` (CRA) app**, not `clerk-react/`.
+  Two reasons it showed the old design: (1) the rebuild lived on an unpushed
+  branch until now, and (2) Vercel's Root Directory points at the old app.
+  **Decision (PM):** port `clerk-react/` to *visual + feature parity* with the
+  old frontend FIRST (Career Paths, profile, home quick-link cards, Contact/legal),
+  to be done in a later session with dedicated UI skills — only THEN delete
+  `frontend/`, repoint Vercel's Root Directory → `clerk-react`, and merge. Do not
+  repoint Vercel before parity or the live site regresses.
 - No automated tests yet.
 - `docs/API_DOCUMENTATION.md` and `docs/COMPONENT_DOCUMENTATION.md` are stale
   (describe the old CRA frontend).
