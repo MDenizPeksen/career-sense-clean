@@ -130,3 +130,8 @@ test('buildLearningLinks: maps skills → learningLinks with Udemy + Coursera en
 test('buildLearningLinks: returns [] for empty input', () => {
   assert.deepEqual(buildLearningLinks([]), []);
 });
+
+test('buildLearningLinks: handles null/undefined input gracefully', () => {
+  assert.deepEqual(buildLearningLinks(null), []);
+  assert.deepEqual(buildLearningLinks(undefined), []);
+});

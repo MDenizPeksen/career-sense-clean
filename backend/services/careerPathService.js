@@ -182,6 +182,7 @@ async function groundTransitionWithOnet(transition, userSkills) {
  *   currentRole: string|null,
  *   transitions: Array<object>,
  *   topSkillGaps: string[],
+ *   learningLinks: Array<{ skill: string, courses: Array<{ provider: string, title: string, url: string }> }>,
  *   generatedAt: string,
  *   message?: string
  * }>}
