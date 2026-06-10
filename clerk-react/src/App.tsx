@@ -7,6 +7,8 @@ import Home from './features/home/Home'
 import CvUpload from './features/cv-upload/CvUpload'
 import Dashboard from './features/dashboard/Dashboard'
 import MockInterviews from './features/mock-interviews/MockInterviews'
+import Discovery from './features/discovery/Discovery'
+import CareerPaths from './features/career-paths/CareerPaths'
 import './App.css'
 
 function App() {
@@ -35,6 +37,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/discovery"
+              element={
+                <ProtectedRoute>
+                  <Discovery />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/career-paths"
+              element={
+                <ProtectedRoute>
+                  <CareerPaths />
                 </ProtectedRoute>
               }
             />

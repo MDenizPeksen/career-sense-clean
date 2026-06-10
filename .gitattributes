@@ -1,0 +1,8 @@
+# Treat lockfiles as generated: GitHub collapses them in diffs by default and
+# excludes them from language statistics. They're still committed (best practice
+# for reproducible installs) — this only affects how they're displayed.
+package-lock.json linguist-generated=true
+**/package-lock.json linguist-generated=true
+
+# Generated Prisma migration SQL.
+backend/prisma/migrations/** linguist-generated=true
