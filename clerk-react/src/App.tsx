@@ -2,42 +2,54 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Login, Signup } from './features/auth'
 import { ProtectedRoute } from './components/auth'
 import Header from './components/layout/Header'
+import Footer from './components/layout/Footer'
+import Home from './features/home/Home'
+import CvUpload from './features/cv-upload/CvUpload'
+import Dashboard from './features/dashboard/Dashboard'
+import MockInterviews from './features/mock-interviews/MockInterviews'
 import './App.css'
 
 function App() {
   return (
     <Router>
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          
-          {/* Protected routes will be added here */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <div className="p-8">
-                <h1 className="text-2xl font-bold">Dashboard</h1>
-                <p>This is a protected route. You can only see this if you're logged in.</p>
-              </div>
-            </ProtectedRoute>
-          } />
-          
-          {/* Home page */}
-          <Route path="/" element={
-            <div className="max-w-3xl mx-auto text-center py-12">
-              <h1 className="text-4xl font-bold text-blue-600 mb-6">Welcome to CareerSense</h1>
-              <p className="text-xl mb-8">Your AI-powered career guidance platform</p>
-              <div className="flex justify-center space-x-4">
-                <a href="/login" className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                  Get Started
-                </a>
-              </div>
-            </div>
-          } />
-        </Routes>
-      </main>
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 w-full py-8">
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login/*" element={<Login />} />
+            <Route path="/signup/*" element={<Signup />} />
+
+            {/* Protected routes */}
+            <Route
+              path="/upload"
+              element={
+                <ProtectedRoute>
+                  <CvUpload />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/interviews"
+              element={
+                <ProtectedRoute>
+                  <MockInterviews />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </Router>
   )
 }

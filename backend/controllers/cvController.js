@@ -16,22 +16,16 @@ exports.analyzeCV = async (req, res, next) => {
     try {
       // Extract text from file
       const cvText = await fileService.extractTextFromFile(req.file);
-      
+
       // Analyze CV with OpenAI
       const analysis = await openaiService.analyzeCV(cvText);
-      
-      // Clean up the file after processing
-      fileService.deleteFile(filePath);
-      
+
       return res.json(analysis);
-    } catch (error) {
-      // Clean up the file in case of error
+    } finally {
+      // Always clean up the uploaded temp file, on success or failure.
       if (filePath) {
         fileService.deleteFile(filePath);
       }
-      
-      // Pass the error to the error handler middleware
-      next(error);
     }
   } catch (error) {
     // Pass the error to the error handler middleware

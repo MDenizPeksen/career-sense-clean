@@ -187,148 +187,30 @@ const analyzeCV = async (cvText) => {
       // Parse the JSON response
       const parsedAnalysis = JSON.parse(cleanedAnalysis);
       
-      // Ensure role_matching always has exactly 3 roles
-      if (!parsedAnalysis.role_matching || !Array.isArray(parsedAnalysis.role_matching)) {
+      // Normalize the shape so the client can render safely, WITHOUT
+      // fabricating content. We only ensure containers exist (empty) —
+      // every value returned is genuine model output, never invented.
+      if (!Array.isArray(parsedAnalysis.role_matching)) {
         parsedAnalysis.role_matching = [];
       }
-      
-      // If we have fewer than 3 roles, generate additional ones based on recommended_roles or add defaults
-      if (parsedAnalysis.role_matching.length < 3) {
-        console.log(`OpenAI returned only ${parsedAnalysis.role_matching.length} roles. Adding fallback roles to ensure 3 roles total.`);
-        
-        // Try to use recommended_roles as a source for additional roles
-        const recommendedRoles = parsedAnalysis.analysis && 
-                                parsedAnalysis.analysis.recommended_roles && 
-                                Array.isArray(parsedAnalysis.analysis.recommended_roles) ? 
-                                parsedAnalysis.analysis.recommended_roles : [];
-        
-        // Default roles to use if we don't have enough from recommended_roles
-        const defaultRoles = [
-          "Business Analyst", 
-          "Product Manager", 
-          "Data Analyst", 
-          "Project Manager", 
-          "Marketing Specialist"
-        ];
-        
-        // Skills that might be relevant for the default roles
-        const defaultSkills = [
-          ["Data Analysis", "Requirements Gathering", "Process Modeling", "SQL", "Business Acumen"],
-          ["Product Strategy", "User Experience", "Agile Methodologies", "Stakeholder Management", "Market Research"],
-          ["Data Visualization", "Statistical Analysis", "SQL", "Excel", "Critical Thinking"],
-          ["Project Planning", "Team Leadership", "Risk Management", "Stakeholder Communication", "Agile/Scrum"],
-          ["Digital Marketing", "Content Strategy", "Social Media", "Analytics", "Campaign Management"]
-        ];
-        
-        // Get skills from the CV analysis to use in role descriptions
-        const userSkills = parsedAnalysis.profile_strengths && 
-                          parsedAnalysis.profile_strengths.skills && 
-                          Array.isArray(parsedAnalysis.profile_strengths.skills) ? 
-                          parsedAnalysis.profile_strengths.skills : [];
-        
-        // Add roles until we have 3
-        while (parsedAnalysis.role_matching.length < 3) {
-          const index = parsedAnalysis.role_matching.length;
-          const roleSource = recommendedRoles.length > index ? 
-                            recommendedRoles[index] : 
-                            defaultRoles[index % defaultRoles.length];
-          
-          // Create a new role with decreasing match percentage
-          parsedAnalysis.role_matching.push({
-            role: roleSource,
-            match_percentage: Math.max(85 - (index * 10), 55), // Decrease match percentage for each role, minimum 55%
-            transition_difficulty: index === 0 ? "Easy" : index === 1 ? "Moderate" : "Challenging",
-            required_skills: defaultSkills[index % defaultSkills.length],
-            role_description: `${roleSource} professionals help organizations improve efficiency and achieve business objectives through ${index === 0 ? "strategic planning" : index === 1 ? "process optimization" : "data-driven decision making"}.`,
-            salary_range: `${50 + (index * 5)},000 - ${70 + (index * 10)},000`
-          });
-        }
+
+      if (!parsedAnalysis.resume_optimization || typeof parsedAnalysis.resume_optimization !== 'object') {
+        parsedAnalysis.resume_optimization = {};
       }
-      
-      // Ensure resume_optimization exists
-      if (!parsedAnalysis.resume_optimization) {
-        parsedAnalysis.resume_optimization = {
-          bullet_rewrites: [],
-          ats_keywords_missing: ["Communication", "Leadership", "Project Management"],
-          formatting_feedback: "The resume has a clear structure, but could benefit from consistent formatting and section headings to improve readability."
-        };
-      }
-      
-      // Ensure bullet_rewrites is an array
-      if (!parsedAnalysis.resume_optimization.bullet_rewrites || !Array.isArray(parsedAnalysis.resume_optimization.bullet_rewrites)) {
+      if (!Array.isArray(parsedAnalysis.resume_optimization.bullet_rewrites)) {
         parsedAnalysis.resume_optimization.bullet_rewrites = [];
       }
-      
-      // If we have fewer than 2 bullet rewrites, add default ones
-      if (parsedAnalysis.resume_optimization.bullet_rewrites.length < 2) {
-        console.log(`OpenAI returned only ${parsedAnalysis.resume_optimization.bullet_rewrites.length} bullet rewrites. Adding fallback bullet rewrites to ensure 2 total.`);
-        
-        // Default bullet point rewrites to use if we don't have enough
-        const defaultBulletRewrites = [
-          {
-            original: "Managed a team of 5 developers for the company's main product",
-            optimized: "Led cross-functional team of 5 developers to deliver 30% performance improvements for the company's flagship product, resulting in $1.2M increased annual revenue"
-          },
-          {
-            original: "Responsible for client communication and project updates",
-            optimized: "Established structured client communication framework that increased satisfaction scores by 25% and improved project delivery timelines by 15%"
-          }
-        ];
-        
-        // Add bullet rewrites until we have 2
-        while (parsedAnalysis.resume_optimization.bullet_rewrites.length < 2) {
-          const index = parsedAnalysis.resume_optimization.bullet_rewrites.length;
-          parsedAnalysis.resume_optimization.bullet_rewrites.push(defaultBulletRewrites[index]);
-        }
+      if (!Array.isArray(parsedAnalysis.resume_optimization.ats_keywords_missing)) {
+        parsedAnalysis.resume_optimization.ats_keywords_missing = [];
       }
-      
-      // Ensure personalized_learning_roadmap exists and has 3 items
-      if (!parsedAnalysis.personalized_learning_roadmap || !Array.isArray(parsedAnalysis.personalized_learning_roadmap)) {
+      if (typeof parsedAnalysis.resume_optimization.formatting_feedback !== 'string') {
+        parsedAnalysis.resume_optimization.formatting_feedback = '';
+      }
+
+      if (!Array.isArray(parsedAnalysis.personalized_learning_roadmap)) {
         parsedAnalysis.personalized_learning_roadmap = [];
       }
-      
-      // If we have fewer than 3 learning roadmap items, add default ones
-      if (parsedAnalysis.personalized_learning_roadmap.length < 3) {
-        console.log(`OpenAI returned only ${parsedAnalysis.personalized_learning_roadmap.length} learning roadmap items. Adding fallback items to ensure 3 total.`);
-        
-        // Get skills from the CV analysis to use in learning recommendations
-        const userSkills = parsedAnalysis.profile_strengths && 
-                          parsedAnalysis.profile_strengths.skills && 
-                          Array.isArray(parsedAnalysis.profile_strengths.skills) ? 
-                          parsedAnalysis.profile_strengths.skills : [];
-        
-        // Default learning roadmap items
-        const defaultLearningItems = [
-          {
-            course: "Data Analysis and Visualization with Python",
-            platform: "Coursera",
-            impact: "This course will enhance your data analysis skills and improve your ability to visualize data effectively.",
-            difficulty: "Intermediate",
-            duration: "4 weeks"
-          },
-          {
-            course: "Strategic Leadership and Management",
-            platform: "LinkedIn Learning",
-            impact: "Develop essential leadership skills to advance your career and lead teams more effectively.",
-            difficulty: "Intermediate",
-            duration: "6 weeks"
-          },
-          {
-            course: "Advanced Excel for Business Analytics",
-            platform: "Udemy",
-            impact: "Master advanced Excel functions and data analysis techniques that are highly valued in business environments.",
-            difficulty: "Beginner to Intermediate",
-            duration: "3 weeks"
-          }
-        ];
-        
-        // Add learning roadmap items until we have 3
-        while (parsedAnalysis.personalized_learning_roadmap.length < 3) {
-          const index = parsedAnalysis.personalized_learning_roadmap.length;
-          parsedAnalysis.personalized_learning_roadmap.push(defaultLearningItems[index]);
-        }
-      }
-      
+
       return parsedAnalysis;
     } catch (parseError) {
       console.error('Error parsing OpenAI response:', parseError);
@@ -432,12 +314,18 @@ Generate a set of 5 interview questions for a ${role} position at the ${level} l
 - Behavioral questions to assess soft skills
 - Problem-solving scenarios relevant to the position
 
-For each question, include:
-- The question text
-- The category (Technical, Behavioral, Problem-solving)
-- The difficulty level (Easy, Medium, Hard)
+Return ONLY a valid JSON object with exactly this structure:
+{
+  "questions": [
+    {
+      "question": "The full question text",
+      "category": "One of: Technical, Behavioral, Problem-solving",
+      "difficulty": "One of: Easy, Medium, Hard"
+    }
+  ]
+}
 
-Format your response as a structured JSON array of questions.
+The top-level key MUST be "questions" and its value MUST be an array of 5 objects.
 `;
 
 // Generate interview questions with OpenAI
@@ -461,7 +349,16 @@ const generateInterviewQuestions = async (role, level) => {
     
     try {
       const parsedContent = JSON.parse(content);
-      return parsedContent.questions || [];
+      // Prefer the documented `questions` key; fall back to a top-level array or
+      // the first array-valued property if the model wraps it under another name.
+      if (Array.isArray(parsedContent.questions)) {
+        return parsedContent.questions;
+      }
+      if (Array.isArray(parsedContent)) {
+        return parsedContent;
+      }
+      const firstArray = Object.values(parsedContent).find((v) => Array.isArray(v));
+      return firstArray || [];
     } catch (parseError) {
       console.error('Error parsing OpenAI response:', parseError);
       throw new OpenAIError(
