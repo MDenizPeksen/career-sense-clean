@@ -1,4 +1,4 @@
-// Prompt template for GPT archetype classification
+// Prompt template for GPT archetype classification.
 module.exports = function getArchetypePrompt(resumeText) {
   return `
 You are CareerSense AI, an expert in career development and professional archetypes.
