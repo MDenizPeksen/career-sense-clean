@@ -6,33 +6,21 @@
  * suggestions in real data: map a role to an occupation, find genuinely related
  * occupations (transition targets), and pull the skills an occupation requires.
  *
- * Access requires a free developer account; credentials are supplied via env:
- *   ONET_USERNAME, ONET_PASSWORD   (HTTP Basic auth)
- * When they're absent, isConfigured() returns false and callers fall back to
+ * Access requires a free developer account; the API key is supplied via env:
+ *   ONET_API_KEY   (sent as the X-API-Key header — O*NET Web Services v2)
+ * When it's absent, isConfigured() returns false and callers fall back to
  * AI-derived data — so the app runs fine without O*NET, and "just works" once
- * the credentials are added.
+ * the key is added.
  *
- * The Web Services API returns XML by default; we request JSON via Accept.
+ * The v2 API returns JSON by default; we also send Accept: application/json.
  * Response shapes vary slightly across endpoints, so parsing is intentionally
  * defensive (see the pure parse* helpers, which are unit-tested with fixtures).
- *
- * NOTE: the live HTTP paths below follow the O*NET WS docs but have not been
- * smoke-tested against the live service yet (no credentials in this env). The
- * pure parsers are fully tested; verify the endpoints once credentials land.
  */
 
-const BASE_URL = process.env.ONET_BASE_URL || 'https://services.onetcenter.org/ws';
+const BASE_URL = process.env.ONET_BASE_URL || 'https://api-v2.onetcenter.org';
 const REQUEST_TIMEOUT_MS = 8000;
 
-const isConfigured = () =>
-  Boolean(process.env.ONET_USERNAME && process.env.ONET_PASSWORD);
-
-function authHeader() {
-  const token = Buffer.from(
-    `${process.env.ONET_USERNAME}:${process.env.ONET_PASSWORD}`
-  ).toString('base64');
-  return `Basic ${token}`;
-}
+const isConfigured = () => Boolean(process.env.ONET_API_KEY);
 
 /**
  * Low-level GET against the O*NET WS, returning parsed JSON.
@@ -42,7 +30,7 @@ function authHeader() {
  */
 async function onetGet(pathAndQuery) {
   if (!isConfigured()) {
-    throw new Error('O*NET is not configured (missing ONET_USERNAME/ONET_PASSWORD)');
+    throw new Error('O*NET is not configured (missing ONET_API_KEY)');
   }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -50,7 +38,7 @@ async function onetGet(pathAndQuery) {
     const res = await fetch(`${BASE_URL}${pathAndQuery}`, {
       method: 'GET',
       headers: {
-        Authorization: authHeader(),
+        'X-API-Key': process.env.ONET_API_KEY,
         Accept: 'application/json',
         'User-Agent': 'CareerSense/1.0 (career guidance app)',
       },
@@ -155,7 +143,9 @@ async function searchOccupations(keyword, limit = 10) {
  */
 async function getRelatedOccupations(code, limit = 10) {
   if (!code) return [];
-  const json = await onetGet(`/online/occupations/${encodeURIComponent(code)}/related_occupations`);
+  const json = await onetGet(
+    `/online/occupations/${encodeURIComponent(code)}/summary/related_occupations`
+  );
   return parseOccupationList(json).slice(0, limit);
 }
 

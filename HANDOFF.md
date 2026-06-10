@@ -4,17 +4,18 @@ Living status doc — what's done, what's next, and how to pick the work back up
 Update the "Last updated" line and the relevant sections whenever you make
 meaningful progress.
 
-**Last updated:** 2026-06-04
-**Active branch:** `companion-foundation` (→ base `harden-and-deploy`, **PR #2**; stacked
-on **PR #1** → `main`). Companion roadmap Phases A–D done; docs refreshed — see below.
+**Last updated:** 2026-06-10
+**Active branch:** `quality-hardening` (→ `main`). Companion roadmap Phases A–D done
++ merged (PRs #1, #2); now on a quality/tech-debt pass — see the plan
+`~/.claude/plans/we-setup-onet-connection-replicated-donut.md`.
 
-> ⏳ **Waiting on O*NET approval.** Registered for O*NET Web Services as org
-> "CareerSense" (Step 5/5 submitted; pending email approval). When the approval
-> email + credentials arrive: add `ONET_USERNAME`/`ONET_PASSWORD` to `backend/.env`,
-> boot the backend, and **smoke-test the live Career Paths path** (`GET /api/career-paths`
-> should return `source:"onet"` with O*NET codes). The parsers are fixture-tested but
-> the live HTTP endpoints (search / related_occupations / details/skills) have NOT
-> been hit yet — adjust `services/data/onetClient.js` paths if O*NET's live shapes differ.
+> ✅ **O*NET is LIVE and verified (2026-06-10).** Migrated `onetClient.js` from the
+> legacy v1 HTTP-Basic scheme to **Web Services v2**: base URL `https://api-v2.onetcenter.org`,
+> auth via the **`X-API-Key`** header from `ONET_API_KEY` (single key, no
+> username/password). Smoke-tested live: `searchOccupations` / `getRelatedOccupations`
+> (path is `/online/occupations/{code}/summary/related_occupations`) / `getOccupationSkills`
+> all return real data, and `getCareerPaths` returns `source:"onet"` with real O*NET codes
+> + skill gaps. `ONET_API_KEY` is in `backend/.env` (gitignored).
 
 ---
 
