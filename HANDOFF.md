@@ -110,16 +110,27 @@ go stateful (DB + real auth), first milestone = conversational discovery, real d
     authenticated requests (URL-only key would have leaked one user's data to
     another on user-scoped GETs like discovery/career-paths once auth is on).
   - Verified e2e (fallback): seeded analysis → correct shared/gap split + aggregated
-    top gaps (`source:'analysis'`); empty state returns `source:'none'`. **The live
-    O*NET HTTP path is unverified** (no creds in this env) — parsers are tested
-    against fixtures; smoke-test once `ONET_*` creds are added.
+    top gaps (`source:'analysis'`); empty state returns `source:'none'`.
+    **As of 2026-06-10 the live O*NET path is verified** (see the top callout).
 - ⬜ Phases E–F: interactive interview agent, progress "tree". Courses provider
   (Udemy/Coursera) still to pick — deferred from D.
-- **Review follow-ups (deferred, documented):** extract a shared `callOpenAIJson`
-  helper + move prompts to `services/prompts/` (do in the prompt-tuning/Phase-E
-  session where they're exercised); `cluster.isMaster`→`isPrimary`; Redis for
-  cache/rate-limit before horizontal scaling; CI + supertest route tests; lint-clean
-  the `any` in cv.ts/interview.ts.
+
+### Quality-hardening pass (2026-06-10) — branch `quality-hardening`
+Tech-debt session (4 commits). Done:
+- ✅ **O*NET v2 migration** — client now uses the `X-API-Key` scheme against
+  `api-v2.onetcenter.org`; `/api/career-paths` verified returning `source:'onet'`.
+- ✅ **Test + lint net** — `backend/app.js` factory (so the app mounts in tests
+  without listening); `backend/test/routes.test.js` (supertest, OpenAI stubbed via
+  the require cache); backend ESLint flat config; frontend Vitest (v1) + a
+  `lib/errorHandling` test. `cluster.isMaster`→`isPrimary`.
+- ✅ **callOpenAIJson refactor** — one shared OpenAI helper (call + timeout + JSON
+  mode + error-wrap + parse) across analyze/archetype/interview/discovery; all
+  prompts moved to `backend/services/prompts/`. Lint clean both sides (the `any`
+  in cv.ts/interview.ts replaced with `unknown` + coercers).
+- ✅ **CI enforces it** — `ci.yml` runs lint (both) + FE Vitest in addition to
+  backend tests + FE build.
+- Still deferred: Redis for cache/rate-limit before horizontal scaling; a real
+  course provider; the parity port (UI session).
 
 ### Phase 4 progress
 - ✅ Dashboard renders the full `/analyze` payload (archetype incl. inline shape,
