@@ -32,6 +32,7 @@ const isConfigured = () => false;
  * @returns {{ provider: string, title: string, url: string }[]}
  */
 function coursesForSkill(skill) {
+  if (typeof skill !== 'string') return [];
   return PROVIDERS.map(({ name, buildUrl }) => ({
     provider: name,
     title: `Browse ${skill} courses on ${name}`,
