@@ -1,6 +1,40 @@
 # CareerSense API Documentation
 
-This document provides details about the API endpoints available in the CareerSense application.
+> **⚠️ PARTIALLY STALE.** The per-endpoint request/response details below were
+> written for an earlier, stateless version of the API and have **not** been kept
+> current (they predate auth, the database, discovery, and career-paths). Use the
+> **current-endpoints quick reference** immediately below as the source of truth;
+> treat the older sections as historical detail. The authoritative architecture
+> doc is [`../CLAUDE.md`](../CLAUDE.md).
+
+## Current endpoints (quick reference)
+
+Base URL: `http://localhost:5001` (set via `VITE_API_URL` on the frontend).
+
+Most routes are **protected** — they require a Clerk session token
+(`Authorization: Bearer <token>`) when `AUTH_ENABLED=true`. With `AUTH_ENABLED=false`
+(local testing) they're open and scope data to a `local-dev-user`.
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET  | `/health` | public | Liveness check. |
+| POST | `/analyze` | protected | Upload a CV (multipart `file`) → full analysis JSON (also persisted). |
+| GET  | `/analyses/latest` | protected | The signed-in user's most recent saved analysis. |
+| POST | `/api/archetype` | protected | Career-archetype classification for résumé text. |
+| POST | `/api/interview/questions` | protected | `{ role, level }` → role-specific interview questions. |
+| POST | `/api/discovery/sessions` | protected | Start a discovery session (returns opening message). |
+| GET  | `/api/discovery/sessions/latest` | protected | Resume the active discovery session, or null. |
+| GET  | `/api/discovery/sessions/:id` | protected | Fetch one discovery session (user-scoped). |
+| POST | `/api/discovery/sessions/:id/messages` | protected | `{ content }` → agent reply; on completion attaches the enriched profile. |
+| GET  | `/api/career-paths` | protected | Role-shift options + shared/gap skills (O*NET-grounded or AI-derived). |
+
+Errors are returned as `{ error, details, timestamp, path }` with the appropriate
+HTTP status (see `backend/middleware/errorHandler.js`).
+
+---
+
+<details>
+<summary>Legacy detail (pre-auth/pre-DB — kept for reference, may be inaccurate)</summary>
 
 ## Base URL
 
@@ -273,3 +307,5 @@ The API currently implements rate limiting to prevent abuse:
 
 - Maximum file size: 10MB
 - Supported formats: PDF, DOC, DOCX
+
+</details>

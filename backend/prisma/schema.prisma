@@ -1,0 +1,136 @@
+// CareerSense data model.
+//
+// The backend used to be stateless; we now persist user-scoped data to power the
+// career-companion features (saved analyses, multi-turn discovery, roadmaps, progress).
+// Every user row is keyed on the Clerk user id (`clerkUserId`) — see middleware/authMiddleware.js.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SessionStatus {
+  active
+  completed
+}
+
+enum MessageRole {
+  user
+  assistant
+  system
+}
+
+enum ItemStatus {
+  not_started
+  in_progress
+  completed
+}
+
+// One row per authenticated Clerk user. Created lazily on first authed request.
+model User {
+  id           String   @id @default(cuid())
+  clerkUserId  String   @unique
+  email        String?
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  analyses          Analysis[]
+  discoverySessions DiscoverySession[]
+  roadmaps          Roadmap[]
+  skillProgress     SkillProgress[]
+  interviewSessions InterviewSession[]
+}
+
+// A persisted CV analysis (the full /analyze payload). Query the latest by user.
+model Analysis {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// A multi-turn discovery conversation that enriches the user's profile beyond the CV.
+model DiscoverySession {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          SessionStatus @default(active)
+  enrichedProfile Json?
+  messages        Message[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+model Message {
+  id        String           @id @default(cuid())
+  sessionId String
+  session   DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      MessageRole
+  content   String
+  createdAt DateTime         @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+// A learning roadmap toward a target role; items are individual skills/courses.
+model Roadmap {
+  id         String        @id @default(cuid())
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetRole String?
+  items      RoadmapItem[]
+  createdAt  DateTime      @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model RoadmapItem {
+  id        String     @id @default(cuid())
+  roadmapId String
+  roadmap   Roadmap    @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  skill     String
+  course    String?
+  platform  String?
+  url       String?
+  status    ItemStatus @default(not_started)
+  order     Int        @default(0)
+
+  @@index([roadmapId, order])
+}
+
+// Per-skill progress (0-100), used to drive the progress visualization.
+model SkillProgress {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill     String
+  level     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, skill])
+}
+
+// A mock-interview session: the role/level, the transcript, and structured feedback.
+model InterviewSession {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       String
+  level      String
+  transcript Json?
+  feedback   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

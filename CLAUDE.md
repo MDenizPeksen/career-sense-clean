@@ -8,7 +8,14 @@ current — it's the first thing read each session.
 CareerSense is an AI career-guidance app. A user uploads a CV (PDF/DOCX); the
 backend extracts the text, sends it to OpenAI (`gpt-4o-mini`), and returns a
 structured analysis: profile, strengths, matching roles, resume optimization,
-and a learning roadmap. Auth is via Clerk. The backend is **stateless** (no DB).
+and a learning roadmap. Auth is via Clerk.
+
+The app is evolving from a one-shot CV analyzer into a **stateful career
+companion** (multi-turn discovery, saved analyses/roadmaps, progress tracking).
+As of the companion roadmap, the backend has a **Postgres database via Prisma**
+(`backend/prisma/schema.prisma`, client in `backend/db/`) — it is **no longer
+stateless**. User rows are keyed on the Clerk user id. See the roadmap plan at
+`~/.claude/plans/yes-absolutely-after-that-resilient-thompson.md`.
 
 ## ⚠️ Repo layout — read this first
 
@@ -27,24 +34,32 @@ exists only as a source to port features from (see `HANDOFF.md`).
 backend/
   index.js            # app entry: middleware wiring, clustering, startup
   config/             # server.js (CORS, port), openai.js (model/tokens)
-  routes/             # cvRoutes, archetypeRoutes, interviewRoutes, healthRoutes
+  routes/             # cv, archetype, interview, discovery, careerPath, health
   controllers/        # thin request handlers -> services
-  services/           # openaiService, fileProcessingService
+  services/           # openaiService, discoveryService, careerPathService, data/onetClient, fileProcessingService
   middleware/         # authMiddleware (Clerk), rateLimit, cache, upload, errorHandler
+  prisma/schema.prisma # Postgres data model (User, Analysis, DiscoverySession, ...)
+  db/                 # client.js (Prisma singleton), users.js, analyses.js, discovery.js
+  test/               # node:test unit tests — run with `npm test`
 clerk-react/src/
   lib/                # apiClient (fetch + Clerk token), errorHandling
-  api/                # cv.ts (uploadCV, checkBackendStatus, validateCvFile)
-  features/           # cv-upload/, dashboard/, auth/
+  api/                # cv.ts, interview.ts, discovery.ts, careerPaths.ts
+  features/           # cv-upload/, dashboard/, discovery/, career-paths/, mock-interviews/, auth/
   components/         # auth/ (ProtectedRoute), layout/ (Header)
-  types/analysis.ts   # CvAnalysis — the response contract
+  types/              # analysis.ts, interview.ts, discovery.ts, careerPaths.ts — response contracts
 ```
 
 ## Common commands
 
 ```bash
 # Backend (port 5001)
-cd backend && npm install && npm run dev      # nodemon
+cd backend && npm install && npm run dev      # nodemon (postinstall runs `prisma generate`)
 cd backend && npm start                        # node index.js
+
+# Database (Prisma + Postgres; needs DATABASE_URL in backend/.env — use Neon)
+cd backend && npm run db:migrate               # create/apply migrations in dev
+cd backend && npm run db:deploy                # apply migrations in prod (Render)
+cd backend && npm run db:studio                # browse data
 
 # Frontend (port 3000)
 cd clerk-react && npm install && npm run dev    # vite
@@ -52,8 +67,10 @@ cd clerk-react && npm run build                 # tsc -b && vite build (run befo
 cd clerk-react && npm run lint
 ```
 
-There are **no automated tests yet** (a known gap — see `HANDOFF.md`). Verify
-changes by running the app: backend `/health`, then the upload→dashboard flow.
+Test coverage is **minimal but started**: `backend/test/` has `node:test` unit
+tests for pure logic (run `cd backend && npm test`). There's no frontend test
+suite or CI yet (a known gap — see `HANDOFF.md`). Still verify behavioral changes
+by running the app: backend `/health`, then the upload→dashboard / discovery flow.
 
 ## Configuration
 
@@ -62,7 +79,7 @@ gitignored; the `.env.example` templates are committed (placeholders only).
 
 Key vars (full list in the `.env.example` files and `DEPLOYMENT.md`):
 - Backend: `OPENAI_API_KEY`, `NODE_ENV`, `ALLOWED_ORIGINS`, `CLERK_SECRET_KEY`,
-  `AUTH_ENABLED`.
+  `AUTH_ENABLED`, `DATABASE_URL` (Postgres/Neon — required once DB features are wired).
 - Frontend: `VITE_API_URL`, `VITE_CLERK_PUBLISHABLE_KEY`, `VITE_AUTH_ENABLED`.
 
 ### Auth toggle (currently PAUSED for testing)
