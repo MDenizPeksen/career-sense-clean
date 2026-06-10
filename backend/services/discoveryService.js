@@ -10,9 +10,10 @@
  * openaiService so behavior is consistent across the codebase. The model output
  * is always genuine — we never fabricate the user's answers or profile.
  */
-const { openai } = require('./openaiService');
+const { callOpenAIJson } = require('./openaiService');
 const openaiConfig = require('../config/openai');
 const { OpenAIError, ValidationError } = require('../utils/errors');
+const buildDiscoverySystemPrompt = require('./prompts/discoveryPrompt');
 
 // The dimensions the discovery agent tries to understand before completing.
 // Kept here (not just in the prompt) so it's documented and testable.
@@ -30,42 +31,7 @@ const DISCOVERY_DIMENSIONS = [
 // MAY complete once it has enough signal, and SHOULD by this many user answers.
 const TARGET_USER_ANSWERS = 6;
 
-const SYSTEM_PROMPT = `You are CareerSense's Discovery Coach — a warm, sharp career advisor who helps people who want to change careers or grow into a new role.
-
-Your job is a guided, multi-turn conversation that builds a rich picture of the person before any role-matching happens. Understand these dimensions over the course of the chat:
-${DISCOVERY_DIMENSIONS.map((d, i) => `${i + 1}. ${d}`).join('\n')}
-
-Rules of the conversation:
-- Ask EXACTLY ONE question per turn. Never stack multiple questions.
-- Be adaptive: build each question on what they just said; reflect it back briefly so they feel heard.
-- Keep each message short (1-3 sentences). Warm, encouraging, plain language — no jargon, no bullet lists.
-- Don't re-ask things you already know from the CV context or earlier answers.
-- After about ${TARGET_USER_ANSWERS} of the user's answers, or sooner if you already have enough signal, COMPLETE the session.
-
-You MUST respond with ONLY a valid JSON object, no prose outside it, in exactly this shape:
-{
-  "reply": "your next message to the user (a single question, or a warm closing summary if complete)",
-  "complete": false,
-  "enrichedProfile": null
-}
-
-When you decide you have enough to complete, set "complete": true, make "reply" a brief encouraging wrap-up (no question), and fill "enrichedProfile" with this exact shape (use null / [] where genuinely unknown — never invent specifics the user did not give you):
-{
-  "headline": "one-sentence summary of who they are and where they're heading",
-  "motivation": "why they want to change or grow",
-  "current_situation": "their current role / industry / context",
-  "target_roles": ["role they're aiming for", "..."],
-  "target_industries": ["industry / domain", "..."],
-  "constraints": {
-    "location": "location or remote preference, or null",
-    "timeline": "how soon they want to move, or null",
-    "compensation": "comp needs/expectations, or null"
-  },
-  "risk_tolerance": "their appetite for change/retraining, or null",
-  "learning_preferences": "how/when they like to learn and time available, or null",
-  "strengths_to_leverage": ["strength from CV or chat", "..."],
-  "open_questions": ["anything still unclear that later steps should probe", "..."]
-}`;
+const SYSTEM_PROMPT = buildDiscoverySystemPrompt(DISCOVERY_DIMENSIONS, TARGET_USER_ANSWERS);
 
 /**
  * Build the compact CV-context block injected as a system message, so the agent
@@ -113,7 +79,7 @@ function parseAgentResponse(raw) {
   try {
     const cleaned = raw.replace(/```json\s*|\s*```/g, '').trim();
     parsed = JSON.parse(cleaned);
-  } catch (err) {
+  } catch {
     throw new OpenAIError(
       'Failed to parse discovery response',
       'The AI returned an invalid response format. Please try again.',
@@ -177,42 +143,14 @@ async function runDiscoveryTurn(history, analysis = null) {
     }
   }
 
-  try {
-    const completionPromise = openai.chat.completions.create({
-      model: openaiConfig.model,
-      messages,
-      max_tokens: openaiConfig.maxTokens.discovery,
-      temperature: openaiConfig.temperature.discovery,
-      response_format: { type: 'json_object' },
-    });
-
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(
-        () =>
-          reject(
-            new OpenAIError(
-              'Request timed out',
-              'The AI service took too long to respond. Please try again.',
-              504
-            )
-          ),
-        openaiConfig.timeout
-      );
-    });
-
-    const completion = await Promise.race([completionPromise, timeoutPromise]);
-    return parseAgentResponse(completion.choices[0].message.content);
-  } catch (error) {
-    if (error instanceof OpenAIError || error instanceof ValidationError) {
-      throw error;
-    }
-    console.error('Discovery agent error:', error);
-    throw new OpenAIError(
-      'AI Service Error',
-      error.response?.data?.error?.message || error.message,
-      error.response?.status || 500
-    );
-  }
+  // Shared helper owns the call + timeout + API-error wrapping; we pass the
+  // discovery-specific validator so its OpenAIErrors surface unchanged.
+  return callOpenAIJson({
+    messages,
+    maxTokens: openaiConfig.maxTokens.discovery,
+    temperature: openaiConfig.temperature.discovery,
+    parse: parseAgentResponse,
+  });
 }
 
 module.exports = {
