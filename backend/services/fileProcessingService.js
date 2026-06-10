@@ -105,7 +105,36 @@ const deleteFile = (filePath) => {
   }
 };
 
+// Sweep orphaned upload files left behind by crashes/timeouts.
+// Deletes files in the uploads directory older than maxAgeMs (default 1 hour).
+const sweepStaleUploads = (uploadsDir, maxAgeMs = 60 * 60 * 1000) => {
+  try {
+    if (!fs.existsSync(uploadsDir)) return;
+    const now = Date.now();
+    let removed = 0;
+    for (const name of fs.readdirSync(uploadsDir)) {
+      if (name === '.gitkeep') continue;
+      const filePath = path.join(uploadsDir, name);
+      try {
+        const stat = fs.statSync(filePath);
+        if (stat.isFile() && now - stat.mtimeMs > maxAgeMs) {
+          fs.unlinkSync(filePath);
+          removed += 1;
+        }
+      } catch (err) {
+        console.error(`Failed to sweep upload ${filePath}:`, err.message);
+      }
+    }
+    if (removed > 0) {
+      console.log(`🧹 Swept ${removed} stale upload file(s) from ${uploadsDir}`);
+    }
+  } catch (error) {
+    console.error('Error sweeping stale uploads:', error.message);
+  }
+};
+
 module.exports = {
   extractTextFromFile,
-  deleteFile
+  deleteFile,
+  sweepStaleUploads
 };
