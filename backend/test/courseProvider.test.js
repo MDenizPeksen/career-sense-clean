@@ -39,11 +39,7 @@ test('coursesForSkill: title contains skill name and provider name', () => {
   }
 });
 
-test('coursesForSkill: empty string returns 2 links without crashing', () => {
-  const links = coursesForSkill('');
-  assert.equal(links.length, 2);
-  for (const { url, title } of links) {
-    assert.equal(typeof url, 'string');
-    assert.equal(typeof title, 'string');
-  }
+test('coursesForSkill: empty string returns [] (no useful URL to emit)', () => {
+  assert.deepEqual(coursesForSkill(''), []);
+  assert.deepEqual(coursesForSkill('   '), []);
 });

@@ -22,6 +22,7 @@ exports.getCareerPaths = async (req, res, next) => {
         currentRole: null,
         transitions: [],
         topSkillGaps: [],
+        learningLinks: [],
         generatedAt: new Date().toISOString(),
         message: 'Sign in and analyze your CV to see career paths.',
       });
