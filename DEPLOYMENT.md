@@ -24,9 +24,9 @@ backend is **stateful** — it needs a `DATABASE_URL` and applied migrations.
 3. **Neon Postgres database.** Create a project at <https://neon.tech>, copy the
    connection string (include `?sslmode=require`). This is the backend's
    `DATABASE_URL`. (Optional) **O*NET** — for real career-path data, register at
-   <https://services.onetcenter.org/developer/signup> and note the
-   `ONET_USERNAME` / `ONET_PASSWORD`; without them, career paths fall back to
-   AI-derived data automatically.
+   <https://services.onetcenter.org/developer/signup> and generate an
+   `ONET_API_KEY`; without it, career paths fall back to AI-derived data
+   automatically.
 
 ---
 
@@ -44,7 +44,7 @@ Option A — **Blueprint** (uses `render.yaml`):
    - `CLERK_PUBLISHABLE_KEY` — `pk_live_…`
    - `ALLOWED_ORIGINS` — your Vercel URL (set after step 2; can start as a
      placeholder and update)
-   - `ONET_USERNAME` / `ONET_PASSWORD` — optional (real career-path data)
+   - `ONET_API_KEY` — optional (real career-path data)
    - `NODE_ENV=production` is set by the blueprint.
 4. **Apply migrations** against the Neon DB (one-time per schema change). Either
    add `npm run db:deploy` to the Render build/release step, or run it once
@@ -95,7 +95,7 @@ Option B — **Manual web service:** same settings entered by hand (root directo
 | Backend  | `CLERK_SECRET_KEY`           | `sk_live_…`                            |
 | Backend  | `CLERK_PUBLISHABLE_KEY`      | `pk_live_…`                            |
 | Backend  | `ALLOWED_ORIGINS`            | `https://career-sense.vercel.app`      |
-| Backend  | `ONET_USERNAME` / `ONET_PASSWORD` | optional — real career-path data  |
+| Backend  | `ONET_API_KEY`              | optional — real career-path data       |
 | Backend  | `PORT`                       | injected by Render automatically       |
 | Frontend | `VITE_API_URL`               | `https://<backend>.onrender.com`       |
 | Frontend | `VITE_CLERK_PUBLISHABLE_KEY` | `pk_live_…`                            |
