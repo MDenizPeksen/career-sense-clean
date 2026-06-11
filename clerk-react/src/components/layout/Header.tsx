@@ -6,13 +6,11 @@ const navClass =
   (glass: boolean) =>
   ({ isActive }: { isActive: boolean }) =>
     `text-sm font-medium transition-colors ${
+      glass ? '[text-shadow:0_1px_8px_rgba(0,0,0,0.7)]' : ''
+    } ${
       isActive
-        ? glass
-          ? 'text-white'
-          : 'text-blue-600'
-        : glass
-          ? 'text-white/80 hover:text-white'
-          : 'text-gray-600 hover:text-blue-600'
+        ? glass ? 'text-white' : 'text-blue-600'
+        : glass ? 'text-white/90 hover:text-white' : 'text-gray-600 hover:text-blue-600'
     }`;
 
 /**
@@ -47,14 +45,14 @@ const Header = () => {
       <div
         className={`mx-auto max-w-6xl flex items-center justify-between transition-all duration-300 ${
           glass
-            ? 'mt-3 px-5 h-14 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md shadow-lg'
+            ? 'mt-0 px-5 h-14 rounded-b-2xl border-x border-b border-white/25 bg-black/25 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
             : 'px-4 h-16 rounded-none border border-transparent'
         }`}
       >
         <div className="flex items-center gap-8">
           <Link
             to="/"
-            className={`text-xl font-bold transition-colors ${glass ? 'text-white' : 'text-blue-600'}`}
+            className={`text-xl font-bold transition-colors ${glass ? 'text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.7)]' : 'text-blue-600'}`}
           >
             CareerSense
           </Link>
