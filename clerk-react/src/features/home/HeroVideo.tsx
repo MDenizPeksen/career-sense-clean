@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Upload, Briefcase, FileText, MessageSquare, BookOpen, ChevronDown } from 'lucide-react';
@@ -35,6 +35,7 @@ const GlassPill = ({ icon, label, delay }: { icon: React.ReactNode; label: strin
 
 const HeroVideo: React.FC = () => {
   const [reduceMotion, setReduceMotion] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -43,6 +44,25 @@ const HeroVideo: React.FC = () => {
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
   }, []);
+
+  // Kick off autoplay reliably. React doesn't always reflect the `muted` JSX
+  // attribute to the DOM property before the browser evaluates autoplay, so the
+  // initial autoplay can be blocked (paused poster frame) until the video
+  // re-enters the viewport. Force the muted property and call play() ourselves.
+  useEffect(() => {
+    if (reduceMotion) return;
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    const play = () => {
+      v.play().catch(() => {
+        /* autoplay still blocked (e.g. data-saver); poster stays — acceptable */
+      });
+    };
+    play();
+    v.addEventListener('canplay', play, { once: true });
+    return () => v.removeEventListener('canplay', play);
+  }, [reduceMotion]);
 
   return (
     <section className="relative -mt-8 min-h-[100svh] w-full overflow-hidden flex flex-col text-center">
@@ -56,11 +76,13 @@ const HeroVideo: React.FC = () => {
         />
       ) : (
         <video
+          ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover"
           autoPlay
           muted
           loop
           playsInline
+          preload="auto"
           poster="/media/hero-poster.jpg"
           aria-hidden="true"
         >
