@@ -9,8 +9,7 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 ## Project Structure
 
 See **[`CLAUDE.md`](CLAUDE.md)** for the authoritative, current layout and
-conventions. In brief, the active code lives in two folders (a third, `frontend/`,
-is **legacy/reference-only** and is being retired — don't build there):
+conventions. In brief, the active code lives in two folders:
 
 ```
 career-sense-clean/
