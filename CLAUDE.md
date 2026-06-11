@@ -19,16 +19,16 @@ stateless**. User rows are keyed on the Clerk user id. See the roadmap plan at
 
 ## ⚠️ Repo layout — read this first
 
-There are **three** top-level app folders, and one is being retired:
+There are **two** top-level app folders:
 
 | Folder        | Stack                         | Status                                            |
 |---------------|-------------------------------|---------------------------------------------------|
-| `backend/`    | Node + Express                | **Active.** The API. Stateless, no DB.            |
+| `backend/`    | Node + Express                | **Active.** The API. Postgres via Prisma.         |
 | `clerk-react/`| Vite + React 19 + TS + Tailwind | **Active / canonical frontend.** Build here.    |
-| `frontend/`   | CRA + webpack + React 18       | **Legacy reference only.** Being ported FROM, then deleted. Do not add features here. |
 
-When asked to work on "the frontend", that means **`clerk-react/`**. `frontend/`
-exists only as a source to port features from (see `HANDOFF.md`).
+When asked to work on "the frontend", that means **`clerk-react/`**. (The old
+CRA app in `frontend/` was the source we ported from; it has been deleted now
+that `clerk-react/` reached parity.)
 
 ```
 backend/
@@ -106,10 +106,12 @@ dev (with a warning) and fail closed (503) in production.
 
 ## Gotchas
 
-- `frontend/` (CRA) and `clerk-react/` (Vite) share concepts but **different env
-  conventions**: `process.env.REACT_APP_*` vs `import.meta.env.VITE_*`.
+- The frontend uses Vite env conventions (`import.meta.env.VITE_*`). The old CRA
+  `process.env.REACT_APP_*` style is gone with the `frontend/` folder — Vercel's
+  frontend project reads `VITE_*` vars (`VITE_API_URL`, `VITE_CLERK_PUBLISHABLE_KEY`,
+  `VITE_AUTH_ENABLED`) and builds from Root Directory `clerk-react`.
 - `docs/API_DOCUMENTATION.md` / `docs/COMPONENT_DOCUMENTATION.md` describe the
-  OLD frontend and are partially stale.
+  OLD CRA frontend and are partially stale.
 - Render's disk is ephemeral — fine, since uploads are temporary (swept hourly).
 
 ## More docs

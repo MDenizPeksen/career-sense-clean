@@ -29,8 +29,8 @@ testing** (`AUTH_ENABLED=false`, `VITE_AUTH_ENABLED=false`).
 
 ## Project direction (decisions made)
 
-- **Frontend:** rebuild on `clerk-react/` (Vite + React 19). `frontend/` (CRA)
-  is reference-only and will be deleted once features are ported.
+- **Frontend:** rebuilt on `clerk-react/` (Vite + React 19). The legacy `frontend/`
+  (CRA) has been **deleted** now that parity was reached.
 - **Hosting:** backend → Render/Railway; frontend → Vercel.
 - **Persistence:** ~~stay stateless~~ **NOW STATEFUL** — evolving into a career
   companion. Postgres via Prisma (`backend/prisma/schema.prisma`, `backend/db/`).
@@ -46,7 +46,7 @@ testing** (`AUTH_ENABLED=false`, `VITE_AUTH_ENABLED=false`).
 | 1 | Backend hardening (auth, env config, CORS, uploads, dep cleanup) | ✅ Done |
 | 2 | Port CV-upload → analysis flow onto Vite | ✅ Done |
 | 3 | Deploy (Render + Vercel + Clerk) | ⏳ Config scaffolded; live setup needs user accounts/secrets |
-| 4 | Port remaining features; remove `frontend/`; tests + CI | 🔄 In progress |
+| 4 | Port remaining features; remove `frontend/`; tests + CI | ✅ `frontend/` removed, Vercel repointed; tests + CI in place |
 | 5 | **Career companion** (stateful: DB + agents + real data) | 🔄 Phase A started |
 
 ### Companion roadmap (Phase 5) — see the plan file
@@ -61,7 +61,7 @@ go stateful (DB + real auth), first milestone = conversational discovery, real d
 - ⬜ **Phase A (user actions / not yet done):** create a **Neon** Postgres DB and put
   its URL in `backend/.env` as `DATABASE_URL`; run `npm run db:migrate -- --name init`
   to create tables; create a **second Vercel project** rooted at `clerk-react` for
-  staging/PR previews (leave production on `frontend/` until parity); flip auth on.
+  staging/PR previews; flip auth on. (Production Vercel now builds `clerk-react/`.)
 - ✅ **Phase B (persist analyses) DONE + verified:** `db/analyses.js`
   (`saveAnalysis`/`getLatestAnalysis`); `analyzeCV` best-effort saves per user;
   new `GET /analyses/latest`; `getRequestUserId` in authMiddleware (real Clerk id,
@@ -147,8 +147,8 @@ Tech-debt session (4 commits). Done:
     pin the exact `{ "questions": [...] }` shape and made parsing fall back to a
     top-level array / first array-valued property.
 - ⬜ Career Paths / profile / legal pages.
-- ⬜ Remove `frontend/`; refresh `README.md` + `docs/*`.
-- ⬜ Tests + CI.
+- ✅ Removed `frontend/`; refreshed `README.md` / `CLAUDE.md` / `CONTRIBUTING.md`.
+- ✅ Tests + CI (backend `node:test` + `npm run lint`; frontend Vitest + build via GitHub Actions).
 - Note: OpenAI project currently has only `gpt-4o-mini` enabled (newer models 403).
   A separate task is queued to make rejected uploads return 400 (not 500).
 
@@ -175,8 +175,9 @@ Tech-debt session (4 commits). Done:
    - Career paths, mock interviews, profile, legal/home pages.
    - The matching backend routes already exist (`/api/archetype`,
      `/api/interview/questions`) — just need frontend + `cv.ts`-style services.
-2. Delete `frontend/` once parity is reached; update `README.md` (drop CRA refs)
-   and refresh `docs/*`.
+2. ✅ Done — `frontend/` deleted, `README.md` / `CLAUDE.md` / `CONTRIBUTING.md`
+   refreshed (CRA refs dropped). `docs/API_DOCUMENTATION.md` /
+   `docs/COMPONENT_DOCUMENTATION.md` still carry stale-banner notes.
 3. Add a lean test + CI baseline: backend route smoke tests (supertest), a Vitest
    smoke test on the frontend, and a GitHub Actions workflow (install/lint/build/test).
 4. Optional: upgrade Vite to clear the 2 dev-server-only audit findings.
@@ -212,14 +213,11 @@ Open http://localhost:3000 → "Analyze my CV" → upload a PDF/DOCX → dashboa
   whether to finish it here or via that task's own worktree (avoid double-commit).
 - **PR #1** is open (`harden-and-deploy` → `main`):
   https://github.com/MDenizPeksen/career-sense-clean/pull/1
-- **Vercel still builds the legacy `frontend/` (CRA) app**, not `clerk-react/`.
-  Two reasons it showed the old design: (1) the rebuild lived on an unpushed
-  branch until now, and (2) Vercel's Root Directory points at the old app.
-  **Decision (PM):** port `clerk-react/` to *visual + feature parity* with the
-  old frontend FIRST (Career Paths, profile, home quick-link cards, Contact/legal),
-  to be done in a later session with dedicated UI skills — only THEN delete
-  `frontend/`, repoint Vercel's Root Directory → `clerk-react`, and merge. Do not
-  repoint Vercel before parity or the live site regresses.
-- No automated tests yet.
+- ✅ **Vercel repointed to `clerk-react/` (Vite).** The `career-sense-clean`
+  project now has Root Directory `clerk-react`, framework Vite, output `dist`, and
+  `VITE_API_URL` / `VITE_CLERK_PUBLISHABLE_KEY` / `VITE_AUTH_ENABLED` env vars
+  (the old `REACT_APP_*` vars are obsolete). The legacy `frontend/` folder is
+  deleted. Production now builds the canonical app.
+- No automated tests yet beyond the backend `node:test` suite + frontend Vitest smoke + CI build.
 - `docs/API_DOCUMENTATION.md` and `docs/COMPONENT_DOCUMENTATION.md` are stale
   (describe the old CRA frontend).

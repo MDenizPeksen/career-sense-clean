@@ -20,13 +20,10 @@ There are **three** top-level app folders; one is being retired:
 |----------------|----------------------------------|--------|
 | `backend/`     | Node + Express (CommonJS)        | **Active.** The API. Stateful (Postgres via Prisma). |
 | `clerk-react/` | Vite + React 19 + TS + Tailwind  | **Active / canonical frontend.** Build here. |
-| `frontend/`    | CRA + webpack + React 18         | **Legacy reference only.** Being ported FROM, then deleted. Don't add features here. |
 
-When a task says "the frontend," it means **`clerk-react/`**. `frontend/` only
-exists as a source to port remaining features/visuals from.
-
-> Note: Production Vercel still builds the legacy `frontend/` until the new app
-> reaches visual+feature parity — see `HANDOFF.md` for the cutover plan.
+When a task says "the frontend," it means **`clerk-react/`**. The old CRA app
+(`frontend/`) has been removed now that `clerk-react/` reached parity; production
+Vercel builds `clerk-react/` (Root Directory `clerk-react`, Vite).
 
 ## What it does
 
@@ -88,7 +85,7 @@ cd clerk-react && npm run build # tsc -b && vite build (run before committing FE
 - **[`DEPLOYMENT.md`](DEPLOYMENT.md)** — Render + Vercel + Clerk + DB walkthrough.
 - **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — contribution guidelines.
 - `docs/API_DOCUMENTATION.md`, `docs/COMPONENT_DOCUMENTATION.md` — **partially
-  stale** (describe the legacy `frontend/`); see the banners inside them.
+  stale** (describe the removed legacy CRA frontend); see the banners inside them.
 
 ## License
 
