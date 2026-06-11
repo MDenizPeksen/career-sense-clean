@@ -9,9 +9,8 @@ import {
   Award,
   BookOpen,
   ArrowRight,
-  Upload,
-  Sparkles,
 } from 'lucide-react';
+import HeroVideo from './HeroVideo';
 
 const features = [
   { icon: <FileText size={22} />, title: 'CV Analysis', text: 'Deep analysis of your strengths, gaps, and ATS keyword opportunities.' },
@@ -30,38 +29,11 @@ const steps = [
 
 const Home: React.FC = () => {
   return (
-    <div className="max-w-6xl mx-auto px-6">
-      {/* Hero */}
-      <section className="text-center pt-12 pb-16">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-blue-700 text-sm font-medium mb-6">
-            <Sparkles size={16} /> AI-powered career guidance
-          </span>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight max-w-3xl mx-auto">
-            Turn your CV into a <span className="text-blue-600">career roadmap</span>
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto mt-6">
-            Upload your resume and get an instant, structured analysis: matching roles, resume
-            fixes, interview stories, and a personalized learning plan.
-          </p>
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <Link
-              to="/upload"
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-blue-600 text-white font-medium shadow-sm hover:bg-blue-700 transition-colors"
-            >
-              <Upload size={18} /> Analyze my CV
-            </Link>
-            <a href="#how-it-works" className="px-5 py-3 text-gray-700 font-medium hover:text-blue-600 transition-colors">
-              How it works
-            </a>
-          </div>
-        </motion.div>
-      </section>
+    <>
+      {/* Full-viewport video hero */}
+      <HeroVideo />
 
+      <div className="max-w-6xl mx-auto px-6 pt-16">
       {/* Features */}
       <section className="pb-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -115,7 +87,8 @@ const Home: React.FC = () => {
           </Link>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 };
 
