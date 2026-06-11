@@ -3,11 +3,10 @@
 # for reproducible installs) — this only affects how they're displayed.
 package-lock.json linguist-generated=true
 **/package-lock.json linguist-generated=true
-
 # Generated Prisma migration SQL.
 backend/prisma/migrations/** linguist-generated=true
 *.mp4 filter=lfs diff=lfs merge=lfs -text
+*.webm filter=lfs diff=lfs merge=lfs -text
 *.jpg filter=lfs diff=lfs merge=lfs -text
 *.jpeg filter=lfs diff=lfs merge=lfs -text
 *.png filter=lfs diff=lfs merge=lfs -text
-*.webm filter=lfs diff=lfs merge=lfs -text
