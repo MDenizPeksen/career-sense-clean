@@ -110,8 +110,8 @@ dev (with a warning) and fail closed (503) in production.
   `process.env.REACT_APP_*` style is gone with the `frontend/` folder — Vercel's
   frontend project reads `VITE_*` vars (`VITE_API_URL`, `VITE_CLERK_PUBLISHABLE_KEY`,
   `VITE_AUTH_ENABLED`) and builds from Root Directory `clerk-react`.
-- `docs/API_DOCUMENTATION.md` / `docs/COMPONENT_DOCUMENTATION.md` describe the
-  OLD CRA frontend and are partially stale.
+- `docs/API_DOCUMENTATION.md`'s "Current endpoints" section is the maintained
+  API reference; its older per-endpoint detail is partially stale (historical).
 - Render's disk is ephemeral — fine, since uploads are temporary (swept hourly).
 
 ## More docs

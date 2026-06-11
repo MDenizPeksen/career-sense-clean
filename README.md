@@ -84,8 +84,8 @@ cd clerk-react && npm run build # tsc -b && vite build (run before committing FE
 - **[`HANDOFF.md`](HANDOFF.md)** — current status and roadmap (living).
 - **[`DEPLOYMENT.md`](DEPLOYMENT.md)** — Render + Vercel + Clerk + DB walkthrough.
 - **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — contribution guidelines.
-- `docs/API_DOCUMENTATION.md`, `docs/COMPONENT_DOCUMENTATION.md` — **partially
-  stale** (describe the removed legacy CRA frontend); see the banners inside them.
+- `docs/API_DOCUMENTATION.md` — endpoint reference; the "Current endpoints"
+  section is maintained, older per-endpoint detail is historical (see its banner).
 
 ## License
 
