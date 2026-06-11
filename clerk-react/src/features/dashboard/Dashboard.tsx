@@ -12,6 +12,7 @@ import {
   Lightbulb,
   MessageSquare,
   Rocket,
+  ListChecks,
   Loader2,
 } from 'lucide-react';
 import type { CvAnalysis, ArchetypeData } from '../../types/analysis';
@@ -20,6 +21,27 @@ import { getLatestAnalysis } from '../../api/cv';
 const Pill: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <span className="inline-block bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-full">{children}</span>
 );
+
+// Map a next-action's points_to to an in-app route. 'resume' and 'learning' are
+// sections on this same Dashboard page, so they get no navigation button.
+function routeForPointsTo(pointsTo?: string): string | null {
+  switch (pointsTo) {
+    case 'career-paths': return '/career-paths';
+    case 'discovery': return '/discovery';
+    case 'interviews': return '/interviews';
+    default: return null;
+  }
+}
+
+const ConfidenceBadge: React.FC<{ confidence: 'high' | 'medium' | 'draft' }> = ({ confidence }) => {
+  const styles: Record<string, string> = {
+    high: 'bg-green-50 text-green-700',
+    medium: 'bg-blue-50 text-blue-700',
+    draft: 'bg-amber-50 text-amber-700',
+  };
+  const label = confidence === 'draft' ? 'Draft' : confidence === 'high' ? 'Well-evidenced' : 'Partly evidenced';
+  return <span className={`text-xs px-2 py-1 rounded-full ${styles[confidence]}`}>{label}</span>;
+};
 
 const Section: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({
   title,
@@ -157,6 +179,35 @@ const Dashboard: React.FC = () => {
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-6 mb-6">
           <p className="text-lg leading-relaxed">{analysis.recruiter_friendly_summary}</p>
         </div>
+      )}
+
+      {analysis.next_actions && analysis.next_actions.length > 0 && (
+        <Section title="Your Next Moves" icon={<ListChecks size={20} />}>
+          <ol className="space-y-3">
+            {analysis.next_actions.map((a, i) => {
+              const route = routeForPointsTo(a.points_to);
+              return (
+                <li key={i} className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-semibold flex items-center justify-center">
+                    {i + 1}
+                  </span>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-800">{a.action}</p>
+                    {a.why && <p className="text-gray-600 text-sm">{a.why}</p>}
+                    {route && (
+                      <button
+                        onClick={() => navigate(route)}
+                        className="mt-1 text-sm font-medium text-blue-700 hover:text-blue-800"
+                      >
+                        Go &rarr;
+                      </button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </Section>
       )}
 
       {profile && (profile.name || profile.current_role) && (
@@ -325,6 +376,21 @@ const Dashboard: React.FC = () => {
                   {item.difficulty && <span>{item.difficulty}</span>}
                   {item.duration && <span>{item.duration}</span>}
                 </div>
+                {item.learningLinks && item.learningLinks.length > 0 && (
+                  <div className="flex flex-wrap gap-3 mt-3">
+                    {item.learningLinks.map((link, j) => (
+                      <a
+                        key={j}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-blue-700 hover:text-blue-800 underline"
+                      >
+                        {link.title}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -336,7 +402,15 @@ const Dashboard: React.FC = () => {
           <div className="space-y-4">
             {analysis.star_interview_stories.map((story, i) => (
               <div key={i} className="border border-gray-100 rounded-xl p-4">
-                {story.title && <h4 className="font-semibold text-gray-800 mb-2">{story.title}</h4>}
+                <div className="flex items-center justify-between mb-2">
+                  {story.title && <h4 className="font-semibold text-gray-800">{story.title}</h4>}
+                  {story.confidence && <ConfidenceBadge confidence={story.confidence} />}
+                </div>
+                {story.confidence === 'draft' && (
+                  <p className="text-xs text-amber-600 mb-2">
+                    Starting point &mdash; refine this with your own details.
+                  </p>
+                )}
                 <dl className="space-y-1 text-sm">
                   {(['situation', 'task', 'action', 'result'] as const).map((k) =>
                     story[k] ? (
