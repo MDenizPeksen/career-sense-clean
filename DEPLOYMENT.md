@@ -46,10 +46,10 @@ Option A — **Blueprint** (uses `render.yaml`):
      placeholder and update)
    - `ONET_API_KEY` — optional (real career-path data)
    - `NODE_ENV=production` is set by the blueprint.
-4. **Apply migrations** against the Neon DB (one-time per schema change). Either
-   add `npm run db:deploy` to the Render build/release step, or run it once
-   locally with the production `DATABASE_URL`:
-   `cd backend && DATABASE_URL="<neon-url>" npm run db:deploy`.
+4. **Migrations apply automatically.** `render.yaml`'s build command is
+   `npm ci && npm run db:deploy`, so Prisma migrations run against `DATABASE_URL`
+   on every deploy. (To apply them by hand instead, run
+   `cd backend && DATABASE_URL="<neon-url>" npm run db:deploy` locally.)
 5. Deploy. Confirm `https://<your-backend>.onrender.com/health` returns `status: ok`.
 
 Option B — **Manual web service:** same settings entered by hand (root directory

@@ -1,19 +1,26 @@
 # Render Blueprint for the CareerSense backend.
 # Deploy via Render dashboard -> "New +" -> "Blueprint" and point it at this repo.
-# Secret values (OPENAI_API_KEY, CLERK_*) are entered in the dashboard, not here.
+# Secret values (OPENAI_API_KEY, CLERK_*, DATABASE_URL) are entered in the
+# dashboard (sync: false), not committed here.
 services:
   - type: web
     name: careersense-backend
     runtime: node
     rootDir: backend
     plan: free
-    buildCommand: npm ci
+    # `npm ci` runs the postinstall `prisma generate`; `db:deploy` applies any
+    # pending Prisma migrations against DATABASE_URL before the service starts.
+    buildCommand: npm ci && npm run db:deploy
     startCommand: node index.js
     healthCheckPath: /health
     autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
+      # Auth is enabled in production so anonymous traffic can't run up OpenAI
+      # costs. With CLERK_SECRET_KEY unset the protected routes fail closed (503).
+      - key: AUTH_ENABLED
+        value: true
       # Render injects PORT automatically; index.js reads process.env.PORT.
       - key: OPENAI_API_KEY
         sync: false
@@ -21,6 +28,10 @@ services:
         sync: false
       - key: CLERK_PUBLISHABLE_KEY
         sync: false
-      # Set to your Vercel frontend URL once deployed, e.g. https://career-sense.vercel.app
+      # Postgres connection string (use Neon). Required — the app is stateful
+      # (Prisma): persisted analyses, discovery sessions, roadmaps, etc.
+      - key: DATABASE_URL
+        sync: false
+      # Set to your Vercel frontend URL, e.g. https://career-sense-clean.vercel.app
       - key: ALLOWED_ORIGINS
         sync: false
