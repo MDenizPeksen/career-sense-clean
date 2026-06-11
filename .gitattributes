@@ -5,8 +5,8 @@ package-lock.json linguist-generated=true
 **/package-lock.json linguist-generated=true
 # Generated Prisma migration SQL.
 backend/prisma/migrations/** linguist-generated=true
-*.mp4 filter=lfs diff=lfs merge=lfs -text
-*.webm filter=lfs diff=lfs merge=lfs -text
-*.jpg filter=lfs diff=lfs merge=lfs -text
-*.jpeg filter=lfs diff=lfs merge=lfs -text
-*.png filter=lfs diff=lfs merge=lfs -text
+
+# NOTE: media (mp4/jpg/png/webm) is intentionally NOT tracked via Git LFS.
+# Vercel's build checkout does not smudge LFS pointers, so LFS-tracked assets
+# deploy as 132-byte pointer files and fail to load. These assets are small
+# (~4 MB total), so we commit them as regular git blobs instead.
