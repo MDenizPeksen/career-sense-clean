@@ -62,7 +62,7 @@ exports.startSession = async (req, res, next) => {
     const analysis = await getLatestAnalysis(userId).catch(() => null);
     const turn = await discoveryService.runDiscoveryTurn([], analysis);
 
-    await addMessage(session.id, 'assistant', turn.reply);
+    await addMessage(userId, session.id, 'assistant', turn.reply);
 
     // Re-fetch so the response includes the freshly stored opening message.
     const fresh = await getSession(userId, session.id);
@@ -102,15 +102,15 @@ exports.sendMessage = async (req, res, next) => {
     }
 
     // Persist the user's answer, then run the agent over the full transcript.
-    await addMessage(id, 'user', content);
+    await addMessage(userId, id, 'user', content);
     const history = [...toAgentHistory(session.messages), { role: 'user', content }];
 
     const analysis = await getLatestAnalysis(userId).catch(() => null);
     const turn = await discoveryService.runDiscoveryTurn(history, analysis);
 
-    await addMessage(id, 'assistant', turn.reply);
+    await addMessage(userId, id, 'assistant', turn.reply);
     if (turn.complete) {
-      await completeSession(id, turn.enrichedProfile || {});
+      await completeSession(userId, id, turn.enrichedProfile || {});
     }
 
     const fresh = await getSession(userId, id);

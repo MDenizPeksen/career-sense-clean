@@ -12,6 +12,13 @@
  */
 const { prisma } = require('./client');
 const { getOrCreateUser } = require('./users');
+const { NotFoundError } = require('../utils/errors');
+
+// Resolve the internal user id for a Clerk id, or null if there's no such user.
+async function resolveUserId(clerkUserId) {
+  const user = await prisma.user.findUnique({ where: { clerkUserId } });
+  return user ? user.id : null;
+}
 
 // Messages are returned oldest-first so the client can render the transcript in order.
 const MESSAGE_ORDER = { createdAt: 'asc' };
@@ -64,21 +71,29 @@ async function getActiveSession(clerkUserId) {
 }
 
 /**
- * Append a message to a session and bump the session's updatedAt.
+ * Append a message to a session (owner-scoped) and bump the session's updatedAt.
+ *
+ * Ownership is enforced here, not just by the caller: the `updateMany` only
+ * matches a row with BOTH the id and the owner's userId, so a non-owner (or a
+ * missing user) affects zero rows and we refuse before writing any message.
+ * Returns 404-style `NotFoundError` either way so we never confirm a session
+ * exists for someone who doesn't own it.
+ *
+ * @param {string} clerkUserId
  * @param {string} sessionId
  * @param {'user'|'assistant'|'system'} role
  * @param {string} content
  * @returns {Promise<import('@prisma/client').Message>}
  */
-async function addMessage(sessionId, role, content) {
-  const [message] = await prisma.$transaction([
-    prisma.message.create({ data: { sessionId, role, content } }),
-    prisma.discoverySession.update({
-      where: { id: sessionId },
-      data: { updatedAt: new Date() },
-    }),
-  ]);
-  return message;
+async function addMessage(clerkUserId, sessionId, role, content) {
+  const userId = await resolveUserId(clerkUserId);
+  if (!userId) throw new NotFoundError('Discovery session not found.');
+  const { count } = await prisma.discoverySession.updateMany({
+    where: { id: sessionId, userId },
+    data: { updatedAt: new Date() },
+  });
+  if (count === 0) throw new NotFoundError('Discovery session not found.');
+  return prisma.message.create({ data: { sessionId, role, content } });
 }
 
 /**
@@ -98,16 +113,22 @@ async function getLatestEnrichedProfile(clerkUserId) {
 }
 
 /**
- * Mark a session completed and store the enriched profile.
+ * Mark a session completed and store the enriched profile (owner-scoped).
+ * Same defense-in-depth as addMessage: a non-owner matches zero rows and is
+ * rejected with a 404-style error.
+ * @param {string} clerkUserId
  * @param {string} sessionId
  * @param {object} enrichedProfile
- * @returns {Promise<import('@prisma/client').DiscoverySession>}
+ * @returns {Promise<void>}
  */
-async function completeSession(sessionId, enrichedProfile) {
-  return prisma.discoverySession.update({
-    where: { id: sessionId },
+async function completeSession(clerkUserId, sessionId, enrichedProfile) {
+  const userId = await resolveUserId(clerkUserId);
+  if (!userId) throw new NotFoundError('Discovery session not found.');
+  const { count } = await prisma.discoverySession.updateMany({
+    where: { id: sessionId, userId },
     data: { status: 'completed', enrichedProfile },
   });
+  if (count === 0) throw new NotFoundError('Discovery session not found.');
 }
 
 module.exports = {

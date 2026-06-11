@@ -103,6 +103,11 @@ dev (with a warning) and fail closed (503) in production.
 - **Never fabricate AI output.** Normalization may reshape/rename fields but must
   not invent roles, salaries, skills, etc. (Backend and `cv.ts` both follow this.)
 - API base URL comes from env (`VITE_API_URL`) — never hardcode a host.
+- **User-data isolation is enforced in the backend, not the DB.** The frontend
+  never touches Postgres; Prisma uses one connection and there's no RLS. So every
+  `db/` query MUST be scoped to the owning user (`where: { ..., userId }`), and
+  write helpers enforce ownership themselves via `updateMany({ where: { id, userId } })`
+  + a count check (see `db/discovery.js`). Keep that invariant when adding queries.
 
 ## Gotchas
 
