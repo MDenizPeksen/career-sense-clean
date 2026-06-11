@@ -40,6 +40,13 @@ Return ONLY a valid JSON object with the following structure, closely adhering t
     "keyword_optimization": ["Suggestions for 3-5 industry-relevant keywords to add"],
     "recommended_roles": ["3-5 specific job titles that match their experience and skills"]
   },
+  "next_actions": [
+    {
+      "action": "An imperative, specific next step grounded in the resume (e.g., 'Add quantifiable metrics to your three most recent bullet points')",
+      "why": "One sentence on the concrete payoff",
+      "points_to": "Exactly one of: resume | career-paths | discovery | interviews | learning"
+    }
+  ],
   "role_matching": [
     {
       "role": "First specific job title that matches their experience",
@@ -81,7 +88,9 @@ Return ONLY a valid JSON object with the following structure, closely adhering t
       "situation": "Describe the situation or context.",
       "task": "What was the specific task or goal?",
       "action": "What actions did the person take?",
-      "result": "What were the quantifiable results or outcomes?"
+      "result": "What were the quantifiable results or outcomes?",
+      "confidence": "high | medium | draft - how directly the resume supports this story",
+      "evidence_basis": "The specific resume line or achievement this story is built on, or '' if inferred"
     }
   ],
   "personalized_learning_roadmap": [
@@ -114,6 +123,12 @@ Return ONLY a valid JSON object with the following structure, closely adhering t
 }
 
 IMPORTANT: You MUST provide EXACTLY 3 roles in the role_matching array, each with a different role title, match percentage, and transition difficulty. Make sure each role has a detailed description, required skills, and salary range.
+
+NEXT ACTIONS: Provide 3-5 items in next_actions, ordered by impact (most valuable first). Ground every action in something actually present in the resume. Keep "why" to one sentence. "points_to" MUST be exactly one of: resume, career-paths, discovery, interviews, learning.
+
+STAR STORIES: Set "confidence" to "high" only when a concrete, quantifiable achievement in the resume backs the story. Use "draft" when the resume does not directly support a measurable result - keep that result qualitative and do NOT invent metrics, numbers, or outcomes that are not in the resume.
+
+EVIDENCE-LINKED STRENGTHS: Phrase each item in profile_strengths.core_competencies and analysis.strengths with its supporting resume evidence inline, e.g. "Stakeholder management - led 3 cross-functional product launches." Do not assert a strength the resume does not support.
 
 Ensure your response is ONLY the JSON object with no additional text before or after. Adhere strictly to the requested keys and structure.
 `;

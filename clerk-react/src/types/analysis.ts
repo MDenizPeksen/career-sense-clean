@@ -79,6 +79,7 @@ export interface CvAnalysis {
   user_profile?: UserProfile;
   profile_strengths?: ProfileStrengths;
   analysis?: AnalysisDetails;
+  next_actions?: { action: string; why: string; points_to: string }[];
   archetype?: ArchetypeData | null;
   role_matching?: RoleMatch[];
   resume_optimization?: {
@@ -93,6 +94,8 @@ export interface CvAnalysis {
     task: string;
     action: string;
     result: string;
+    confidence?: 'high' | 'medium' | 'draft';
+    evidence_basis?: string;
   }[];
   future_growth_potential?: {
     career_growth_trajectory: string;
@@ -105,6 +108,7 @@ export interface CvAnalysis {
     impact: string;
     difficulty?: string;
     duration?: string;
+    learningLinks?: { provider: string; title: string; url: string }[];
   }[];
   recruiter_friendly_summary?: string;
   dashboard_scores?: {
