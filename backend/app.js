@@ -18,7 +18,7 @@ const logger = require('./middleware/loggerMiddleware');
 const errorHandler = require('./middleware/errorHandler');
 const compressionMiddleware = require('./middleware/compressionMiddleware');
 const { cacheMiddleware } = require('./middleware/cacheMiddleware');
-const { apiLimiter, cvAnalysisLimiter } = require('./middleware/rateLimitMiddleware');
+const { apiLimiter, cvAnalysisLimiter, createEngagementLimiter } = require('./middleware/rateLimitMiddleware');
 const { isClerkConfigured } = require('./middleware/authMiddleware');
 const { clerkMiddleware } = require('@clerk/express');
 
@@ -64,6 +64,12 @@ function createApp() {
   // Apply stricter rate limiting to resource-intensive endpoints
   app.use('/analyze', cvAnalysisLimiter);
   app.use('/api/archetype', cvAnalysisLimiter);
+
+  // Strict limiting on unauthenticated write endpoints (anti-spam). Each gets
+  // its own limiter instance so the per-IP budget is independent per endpoint.
+  app.use('/api/feedback', createEngagementLimiter());
+  app.use('/api/contact', createEngagementLimiter());
+  app.use('/api/waitlist', createEngagementLimiter());
 
   // Apply caching to GET requests
   app.use('/api', cacheMiddleware(300)); // 5 minutes cache for API endpoints

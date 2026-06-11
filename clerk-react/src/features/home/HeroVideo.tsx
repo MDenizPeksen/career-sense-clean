@@ -110,6 +110,10 @@ const HeroVideo: React.FC = () => {
             Turn your CV into a career you can see.
           </span>
         </h1>
+        <p className="mt-4 max-w-md text-base sm:text-lg text-white/90 [text-shadow:0_1px_10px_rgba(0,0,0,0.6)]">
+          Start with your CV — then keep going. CareerSense gets to know you and
+          builds an evolving plan that grows with every step you take.
+        </p>
       </motion.div>
 
       {/* ── Floating feature pills (desktop: left/right columns; mobile: 2×2 grid) ── */}

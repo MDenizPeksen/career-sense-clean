@@ -9,6 +9,10 @@ import Dashboard from './features/dashboard/Dashboard'
 import MockInterviews from './features/mock-interviews/MockInterviews'
 import Discovery from './features/discovery/Discovery'
 import CareerPaths from './features/career-paths/CareerPaths'
+import Contact from './features/contact/Contact'
+import Terms from './features/legal/Terms'
+import Privacy from './features/legal/Privacy'
+import FeedbackWidget from './features/feedback/FeedbackWidget'
 import './App.css'
 
 function App() {
@@ -22,6 +26,9 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login/*" element={<Login />} />
             <Route path="/signup/*" element={<Signup />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
 
             {/* Protected routes */}
             <Route
@@ -67,6 +74,7 @@ function App() {
           </Routes>
         </main>
         <Footer />
+        <FeedbackWidget />
       </div>
     </Router>
   )
