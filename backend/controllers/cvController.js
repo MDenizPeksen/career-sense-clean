@@ -3,6 +3,7 @@ const fileService = require('../services/fileProcessingService');
 const { ValidationError } = require('../utils/errors');
 const { getRequestUserId } = require('../middleware/authMiddleware');
 const { saveAnalysis, getLatestAnalysis } = require('../db/analyses');
+const { enrichLearningRoadmap } = require('../services/analysisEnrichment');
 
 // CV analysis controller
 exports.analyzeCV = async (req, res, next) => {
@@ -20,6 +21,9 @@ exports.analyzeCV = async (req, res, next) => {
 
       // Analyze CV with OpenAI
       const analysis = await openaiService.analyzeCV(cvText);
+
+      // Attach real, clickable course links (deterministic, code-side).
+      enrichLearningRoadmap(analysis);
 
       // Best-effort persistence: never let a DB hiccup fail the analysis response.
       const userId = getRequestUserId(req);
@@ -50,7 +54,7 @@ exports.getLatestAnalysis = async (req, res, next) => {
       return res.json({ analysis: null });
     }
     const analysis = await getLatestAnalysis(userId);
-    return res.json({ analysis });
+    return res.json({ analysis: enrichLearningRoadmap(analysis) });
   } catch (error) {
     next(error);
   }
