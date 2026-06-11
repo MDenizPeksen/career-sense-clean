@@ -10,6 +10,7 @@ const {
   collectUserSkills,
   buildTransitionsFromAnalysis,
   aggregateTopGaps,
+  buildLearningLinks,
 } = require('../services/careerPathService');
 
 test('normalizeSkill: case/space/punctuation-insensitive, keeps c++/c#/.net', () => {
@@ -106,4 +107,31 @@ test('aggregateTopGaps: ranks most-common missing skills', () => {
 test('aggregateTopGaps: handles empty', () => {
   assert.deepEqual(aggregateTopGaps([]), []);
   assert.deepEqual(aggregateTopGaps(undefined), []);
+});
+
+test('buildLearningLinks: maps skills → learningLinks with Udemy + Coursera entries', () => {
+  const links = buildLearningLinks(['Python', 'SQL']);
+  assert.equal(links.length, 2);
+  assert.equal(links[0].skill, 'Python');
+  assert.equal(links[1].skill, 'SQL');
+  // Each skill has 2 courses
+  assert.equal(links[0].courses.length, 2);
+  const providers = links[0].courses.map((c) => c.provider);
+  assert.ok(providers.includes('Udemy'));
+  assert.ok(providers.includes('Coursera'));
+  // Each course has string url + title
+  for (const c of links[0].courses) {
+    assert.equal(typeof c.url, 'string');
+    assert.equal(typeof c.title, 'string');
+    assert.ok(c.url.startsWith('http'));
+  }
+});
+
+test('buildLearningLinks: returns [] for empty input', () => {
+  assert.deepEqual(buildLearningLinks([]), []);
+});
+
+test('buildLearningLinks: handles null/undefined input gracefully', () => {
+  assert.deepEqual(buildLearningLinks(null), []);
+  assert.deepEqual(buildLearningLinks(undefined), []);
 });

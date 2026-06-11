@@ -1,15 +1,17 @@
 import { apiClient } from '../lib/apiClient';
 import type { InterviewQuestion, InterviewQuestionsResponse } from '../types/interview';
 
+const asString = (v: unknown): string => (typeof v === 'string' ? v : '');
+
 // Coerce a single raw model item into our InterviewQuestion shape.
 // The model returns the data; we only reconcile key-name variants — never invent it.
-function normalizeQuestion(raw: Record<string, any>): InterviewQuestion | null {
+function normalizeQuestion(raw: Record<string, unknown>): InterviewQuestion | null {
   const question = raw.question ?? raw.text ?? raw.prompt ?? '';
   if (typeof question !== 'string' || !question.trim()) return null;
   return {
     question: question.trim(),
-    category: raw.category ?? raw.type ?? '',
-    difficulty: raw.difficulty ?? raw.level ?? '',
+    category: asString(raw.category ?? raw.type),
+    difficulty: asString(raw.difficulty ?? raw.level),
   };
 }
 
@@ -27,6 +29,6 @@ export async function getInterviewQuestions(
   );
   const list = Array.isArray(res?.questions) ? res.questions : [];
   return list
-    .map((q) => normalizeQuestion(q as Record<string, any>))
+    .map((q) => normalizeQuestion(q as unknown as Record<string, unknown>))
     .filter((q): q is InterviewQuestion => q !== null);
 }

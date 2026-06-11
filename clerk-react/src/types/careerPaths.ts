@@ -16,12 +16,24 @@ export interface CareerTransition {
   skillGap: string[]; // skills the user still needs
 }
 
+export interface CourseLink {
+  provider: string;
+  title: string;
+  url: string;
+}
+
+export interface LearningLink {
+  skill: string;
+  courses: CourseLink[];
+}
+
 export interface CareerPathsResult {
   source: CareerPathSource;
   onetConfigured: boolean;
   currentRole: string | null;
   transitions: CareerTransition[];
   topSkillGaps: string[];
+  learningLinks?: LearningLink[]; // optional: absent in older cached responses
   generatedAt: string;
   message?: string;
 }

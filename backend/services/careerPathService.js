@@ -17,6 +17,7 @@
 const onet = require('./data/onetClient');
 const { getLatestAnalysis } = require('../db/analyses');
 const { getLatestEnrichedProfile } = require('../db/discovery');
+const courses = require('./data/courseProvider');
 
 // ---- Pure helpers ------------------------------------------------------------
 
@@ -135,6 +136,18 @@ function aggregateTopGaps(transitions, limit = 8) {
     .map((e) => e.label);
 }
 
+/**
+ * Build learning links for a list of skill gaps.
+ * @param {string[]} topSkillGaps
+ * @returns {Array<{ skill: string, courses: Array<{ provider: string, title: string, url: string }> }>}
+ */
+function buildLearningLinks(topSkillGaps) {
+  return (topSkillGaps || []).map((skill) => ({
+    skill,
+    courses: courses.coursesForSkill(skill),
+  }));
+}
+
 // ---- Orchestrator (DB + O*NET I/O) ------------------------------------------
 
 /**
@@ -169,6 +182,7 @@ async function groundTransitionWithOnet(transition, userSkills) {
  *   currentRole: string|null,
  *   transitions: Array<object>,
  *   topSkillGaps: string[],
+ *   learningLinks: Array<{ skill: string, courses: Array<{ provider: string, title: string, url: string }> }>,
  *   generatedAt: string,
  *   message?: string
  * }>}
@@ -184,6 +198,7 @@ async function getCareerPaths(clerkUserId) {
       currentRole: null,
       transitions: [],
       topSkillGaps: [],
+      learningLinks: [],
       generatedAt,
       message: 'Upload and analyze your CV first to see career paths.',
     };
@@ -219,12 +234,14 @@ async function getCareerPaths(clerkUserId) {
     if (groundedAny) source = 'onet';
   }
 
+  const topSkillGaps = aggregateTopGaps(transitions);
   return {
     source,
     onetConfigured: onet.isConfigured(),
     currentRole,
     transitions,
-    topSkillGaps: aggregateTopGaps(transitions),
+    topSkillGaps,
+    learningLinks: buildLearningLinks(topSkillGaps),
     generatedAt,
   };
 }
@@ -238,4 +255,5 @@ module.exports = {
   collectUserSkills,
   buildTransitionsFromAnalysis,
   aggregateTopGaps,
+  buildLearningLinks,
 };

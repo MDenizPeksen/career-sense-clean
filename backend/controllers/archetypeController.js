@@ -1,5 +1,5 @@
 const openaiService = require('../services/openaiService');
-const { ValidationError, OpenAIError, InternalServerError } = require('../utils/errors');
+const { ValidationError, OpenAIError } = require('../utils/errors');
 
 // Get career archetype controller
 exports.getArchetype = async (req, res, next) => {

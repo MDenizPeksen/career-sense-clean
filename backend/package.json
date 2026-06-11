@@ -10,7 +10,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "test": "node --test \"test/**/*.test.js\""
+    "lint": "eslint .",
+    "test": "node --test test/*.test.js"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -18,6 +19,7 @@
   "dependencies": {
     "@clerk/express": "^2.1.23",
     "@prisma/client": "^6.19.3",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.18.2",
@@ -30,7 +32,11 @@
     "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "eslint": "^9.39.4",
+    "globals": "^17.6.0",
     "nodemon": "^3.0.2",
-    "prisma": "^6.19.3"
+    "prisma": "^6.19.3",
+    "supertest": "^7.2.2"
   }
 }

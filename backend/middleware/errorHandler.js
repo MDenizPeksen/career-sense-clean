@@ -1,8 +1,9 @@
 /**
  * Global error handling middleware
  * Provides consistent error responses across the application
+ * (`_next` is unused but required: Express dispatches error handlers by arity 4.)
  */
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   // Log error details for debugging
   console.error(`[${new Date().toISOString()}] Error:`, {
     name: err.name,

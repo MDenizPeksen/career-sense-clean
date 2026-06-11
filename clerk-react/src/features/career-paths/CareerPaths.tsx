@@ -12,6 +12,7 @@ import {
   Sparkles,
   TrendingUp,
   ArrowUpRight,
+  ExternalLink,
 } from 'lucide-react';
 import { getCareerPaths } from '../../api/careerPaths';
 import type { CareerPathsResult, CareerTransition } from '../../types/careerPaths';
@@ -201,16 +202,42 @@ const CareerPaths: React.FC = () => {
                       These show up most across your matching roles — learning them opens the most
                       doors.
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      {data.topSkillGaps.map((s) => (
-                        <span
-                          key={s}
-                          className="text-sm font-medium px-3 py-1.5 rounded-full bg-white text-blue-700 border border-blue-200"
-                        >
-                          {s}
-                        </span>
-                      ))}
-                    </div>
+                    {data.learningLinks != null ? (
+                      data.learningLinks.length > 0 && (
+                        <div className="flex flex-col gap-3">
+                          {data.learningLinks.map(({ skill, courses }) => (
+                            <div key={skill} className="flex flex-wrap items-center gap-2">
+                              <span className="text-sm font-semibold text-gray-800 w-36 shrink-0">{skill}</span>
+                              {courses.map(({ provider, title, url }) => (
+                                <a
+                                  key={url}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={title}
+                                  title={title}
+                                  className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-white text-blue-700 border border-blue-200 hover:bg-blue-50 transition-colors"
+                                >
+                                  {provider}
+                                  <ExternalLink size={11} />
+                                </a>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {data.topSkillGaps.map((s) => (
+                          <span
+                            key={s}
+                            className="text-sm font-medium px-3 py-1.5 rounded-full bg-white text-blue-700 border border-blue-200"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 

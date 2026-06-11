@@ -71,20 +71,15 @@ test('parseSkillList: ignores nameless entries and bad input', () => {
   assert.deepEqual(parseSkillList({}), []);
 });
 
-test('isConfigured: reflects env credentials', () => {
-  const origUser = process.env.ONET_USERNAME;
-  const origPass = process.env.ONET_PASSWORD;
+test('isConfigured: reflects the API key env var', () => {
+  const origKey = process.env.ONET_API_KEY;
   try {
-    delete process.env.ONET_USERNAME;
-    delete process.env.ONET_PASSWORD;
+    delete process.env.ONET_API_KEY;
     assert.equal(isConfigured(), false);
-    process.env.ONET_USERNAME = 'u';
-    process.env.ONET_PASSWORD = 'p';
+    process.env.ONET_API_KEY = 'test-key';
     assert.equal(isConfigured(), true);
   } finally {
-    if (origUser === undefined) delete process.env.ONET_USERNAME;
-    else process.env.ONET_USERNAME = origUser;
-    if (origPass === undefined) delete process.env.ONET_PASSWORD;
-    else process.env.ONET_PASSWORD = origPass;
+    if (origKey === undefined) delete process.env.ONET_API_KEY;
+    else process.env.ONET_API_KEY = origKey;
   }
 });
