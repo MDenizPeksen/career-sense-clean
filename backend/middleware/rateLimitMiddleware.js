@@ -56,9 +56,23 @@ const cvAnalysisLimiter = createRateLimiter({
   }
 });
 
+// Strict limiter for unauthenticated write endpoints (feedback, contact,
+// waitlist) — cheap to spam, so cap submissions per IP. Returns a FRESH limiter
+// each call so every endpoint gets its own counter (a shared instance would
+// pool one budget across all three, blocking a user who uses more than one).
+const createEngagementLimiter = () => createRateLimiter({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: int(process.env.ENGAGEMENT_RATE_LIMIT, 5), // submissions per hour per IP per endpoint
+  message: {
+    status: 'error',
+    message: 'Too many submissions. Please try again later.'
+  }
+});
+
 module.exports = {
   apiLimiter,
   authLimiter,
   cvAnalysisLimiter,
+  createEngagementLimiter,
   createRateLimiter
 };

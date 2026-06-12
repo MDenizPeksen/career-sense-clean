@@ -134,3 +134,30 @@ model InterviewSession {
 
   @@index([userId, createdAt])
 }
+
+// Inbound message from the feedback widget or the contact page. These are
+// public submissions (anonymous visitors can send them), so `clerkUserId` is an
+// optional plain string rather than a User relation — we keep the message even
+// if the account is later removed. `type` distinguishes the two entry points.
+model Feedback {
+  id          String   @id @default(cuid())
+  type        String   // "feedback" | "contact"
+  message     String
+  email       String?  // reply-to: optional for the widget, required for contact
+  name        String?  // contact form only
+  clerkUserId String?  // set when the submitter is signed in
+  pageUrl     String?  // where the feedback widget was opened (debugging context)
+  createdAt   DateTime @default(now())
+
+  @@index([type, createdAt])
+}
+
+// "Stay updated" email capture from the landing page. Unique on email so a
+// repeat signup is an idempotent no-op rather than a duplicate row.
+model WaitlistEntry {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  source      String?  // e.g. "landing-hero", "footer"
+  clerkUserId String?  // set when the submitter is signed in
+  createdAt   DateTime @default(now())
+}
