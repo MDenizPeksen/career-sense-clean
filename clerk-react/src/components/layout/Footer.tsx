@@ -19,6 +19,7 @@ const Footer = () => (
           <Link to="/contact" className="text-gray-600 hover:text-blue-600">Contact</Link>
           <Link to="/privacy" className="text-gray-600 hover:text-blue-600">Privacy Policy</Link>
           <Link to="/terms" className="text-gray-600 hover:text-blue-600">Terms of Service</Link>
+          <Link to="/impressum" className="text-gray-600 hover:text-blue-600">Impressum</Link>
         </nav>
       </div>
 

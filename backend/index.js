@@ -1,4 +1,7 @@
 require('dotenv').config();
+// Initialize Sentry before anything else so it can instrument http/express.
+// No-op when SENTRY_DSN is unset.
+require('./instrument');
 const path = require('path');
 const cluster = require('cluster');
 const os = require('os');

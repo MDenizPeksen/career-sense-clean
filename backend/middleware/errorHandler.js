@@ -1,3 +1,7 @@
+// Sentry SDK — captureException is a safe no-op when Sentry was never init'd
+// (i.e. SENTRY_DSN unset), so this import is harmless in dev/tests.
+const Sentry = require('@sentry/node');
+
 /**
  * Global error handling middleware
  * Provides consistent error responses across the application
@@ -18,6 +22,12 @@ const errorHandler = (err, req, res, _next) => {
   let statusCode = err.statusCode || 500;
   let message = err.message || 'Internal Server Error';
   let details = err.details || null;
+
+  // Report genuine server faults to Sentry (skip expected 4xx client errors so
+  // validation/auth/not-found noise doesn't drown out real bugs).
+  if (statusCode >= 500) {
+    Sentry.captureException(err);
+  }
 
   // Handle multer errors
   if (err.name === 'MulterError') {

@@ -12,6 +12,7 @@ import CareerPaths from './features/career-paths/CareerPaths'
 import Contact from './features/contact/Contact'
 import Terms from './features/legal/Terms'
 import Privacy from './features/legal/Privacy'
+import Impressum from './features/legal/Impressum'
 import FeedbackWidget from './features/feedback/FeedbackWidget'
 import './App.css'
 
@@ -29,6 +30,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/impressum" element={<Impressum />} />
 
             {/* Protected routes */}
             <Route

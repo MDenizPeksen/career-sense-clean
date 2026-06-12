@@ -85,6 +85,51 @@ Option B — **Manual web service:** same settings entered by hand (root directo
 
 ---
 
+## 4. Pre-launch checklist (before public marketing)
+
+Run through this before driving real traffic (Reddit, friends, etc.). These are
+the things that actually gate a safe, compliant public launch.
+
+**Cost & abuse safety (most important):**
+
+- [ ] **Auth is ON in production.** Anonymous traffic must not be able to run up
+  OpenAI cost. Verify **Render** has `AUTH_ENABLED=true` (or unset) *and* a valid
+  `CLERK_SECRET_KEY`, and **Vercel** has `VITE_AUTH_ENABLED=true`. The local
+  `.env` files ship as `false` for testing — do **not** rely on those values in
+  prod. Quick check: open the prod site signed-out and confirm `/upload` and the
+  dashboard redirect to login.
+- [ ] **OpenAI spend cap set.** At
+  <https://platform.openai.com/settings/organization/limits> set a hard monthly
+  usage limit (and a lower "notification" threshold). This is your safety net if
+  traffic spikes or someone abuses the API.
+- [ ] **Rate limits sane.** Defaults: `/analyze` 20/hr per IP, engagement
+  endpoints 5/hr per IP. Tune via `CV_ANALYSIS_RATE_LIMIT` / `ENGAGEMENT_RATE_LIMIT`
+  if needed.
+
+**Legal / compliance (EU — you operate from Germany):**
+
+- [ ] **Fill the legal placeholders.** `Terms`, `Privacy`, and `Impressum` pages
+  contain `[...]` placeholders (legal name, address, contact email, jurisdiction).
+  Complete them — an incomplete **Impressum** (`/impressum`, required under § 5
+  DDG for a public German site) can draw a warning (*Abmahnung*).
+- [ ] **Have the templates reviewed.** Terms/Privacy are good-faith templates,
+  not legal advice. Get them checked before relying on them.
+
+**Observability (recommended, optional):**
+
+- [ ] **Sentry.** Create a Node project + a React project at <https://sentry.io>,
+  then set `SENTRY_DSN` (Render) and `VITE_SENTRY_DSN` (Vercel). Until set, error
+  capture is a safe no-op. Server faults (5xx) are reported automatically.
+- [ ] **Email notifications (optional).** To get pinged on feedback/contact/
+  waitlist entries, set `RESEND_API_KEY`, `FROM_EMAIL`, `FEEDBACK_NOTIFY_EMAIL`
+  on Render (see `backend/.env.example`). Until set, submissions still work and
+  simply skip the email; read entries via `cd backend && npm run db:studio`.
+- [ ] **Analytics (optional, GDPR-friendly).** If you want traffic metrics for
+  marketing, prefer a cookieless tool like **Plausible** (no consent banner
+  needed) over Google Analytics / PostHog (which add consent-banner obligations).
+
+---
+
 ## Environment variable reference
 
 | Where    | Variable                     | Example / notes                        |
@@ -96,8 +141,15 @@ Option B — **Manual web service:** same settings entered by hand (root directo
 | Backend  | `CLERK_PUBLISHABLE_KEY`      | `pk_live_…`                            |
 | Backend  | `ALLOWED_ORIGINS`            | `https://career-sense.vercel.app`      |
 | Backend  | `ONET_API_KEY`              | optional — real career-path data       |
+| Backend  | `AUTH_ENABLED`               | `true` in prod (gates OpenAI cost)     |
+| Backend  | `SENTRY_DSN`                 | optional — error monitoring            |
+| Backend  | `RESEND_API_KEY`             | optional — feedback/contact/waitlist emails |
+| Backend  | `FROM_EMAIL`                 | optional — verified Resend sender      |
+| Backend  | `FEEDBACK_NOTIFY_EMAIL`      | optional — inbox for new-entry alerts  |
 | Backend  | `PORT`                       | injected by Render automatically       |
 | Frontend | `VITE_API_URL`               | `https://<backend>.onrender.com`       |
 | Frontend | `VITE_CLERK_PUBLISHABLE_KEY` | `pk_live_…`                            |
+| Frontend | `VITE_AUTH_ENABLED`          | `true` in prod                         |
+| Frontend | `VITE_SENTRY_DSN`            | optional — error monitoring            |
 
 See `backend/.env.example` and `clerk-react/.env.example` for the full local set.
