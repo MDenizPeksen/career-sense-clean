@@ -3,6 +3,7 @@
 const { callOpenAIJson } = require('./openaiService');
 const { ValidationError } = require('../utils/errors');
 const cvParsePrompt = require('./prompts/cvParsePrompt');
+const openaiConfig = require('../config/openai');
 
 /**
  * @typedef {{ name?: string, email?: string, phone?: string, location?: string, linkedin?: string, portfolio_url?: string }} CvContact
@@ -192,8 +193,8 @@ async function parseCvStructure(rawText) {
   const raw = await callOpenAIJson({
     system: 'You are a precise CV data extractor. Return only valid JSON matching the requested schema.',
     user: cvParsePrompt(rawText),
-    maxTokens: 1500,
-    temperature: 0.1,
+    maxTokens: openaiConfig.maxTokens.parse,
+    temperature: openaiConfig.temperature.parse,
   });
   return normalizeParsedCV(raw);
 }

@@ -42,13 +42,14 @@ Return ONLY a valid JSON object with this exact structure:
     }
   ],
   "skills": ["skill1", "skill2"],
-  "certifications": ["certification name"] or null,
-  "languages": ["English", "German"] or null
+  "certifications": ["certification name"],
+  "languages": ["English", "German"]
 }
 
 Rules:
 - List experience in reverse-chronological order (most recent first)
 - Copy bullets VERBATIM from the CV — do NOT rewrite, summarise, or invent new content
 - Use null for any field not found in the CV
+- certifications and languages may be null if none are found in the CV
 - Return ONLY the JSON object, no other text`;
 };
