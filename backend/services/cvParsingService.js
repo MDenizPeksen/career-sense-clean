@@ -91,4 +91,83 @@ function normalizeParsedCV(raw) {
   };
 }
 
-module.exports = { normalizeParsedCV };
+/**
+ * Convert a ParsedCV into a structured text string for the analysis prompt.
+ * Clear section headers and bullet formatting let gpt-4o-mini reliably
+ * identify sections, roles, and achievements without re-discovering structure.
+ * Pure — no I/O. Exported for unit testing.
+ * @param {ParsedCV} cv
+ * @returns {string}
+ */
+function parsedCvToText(cv) {
+  const sections = [];
+
+  // CONTACT
+  const c = cv.contact || {};
+  const contactLines = ['=== CONTACT ==='];
+  if (c.name) contactLines.push(`Name: ${c.name}`);
+  if (c.email) contactLines.push(`Email: ${c.email}`);
+  if (c.phone) contactLines.push(`Phone: ${c.phone}`);
+  if (c.location) contactLines.push(`Location: ${c.location}`);
+  if (c.linkedin) contactLines.push(`LinkedIn: ${c.linkedin}`);
+  if (c.portfolio_url) contactLines.push(`Portfolio: ${c.portfolio_url}`);
+  sections.push(contactLines.join('\n'));
+
+  // PROFESSIONAL SUMMARY
+  if (cv.summary) {
+    sections.push(`=== PROFESSIONAL SUMMARY ===\n${cv.summary}`);
+  }
+
+  // WORK EXPERIENCE
+  if (cv.experience && cv.experience.length > 0) {
+    const expLines = ['=== WORK EXPERIENCE ==='];
+    for (const exp of cv.experience) {
+      const parts = [exp.title, exp.company];
+      if (exp.location) parts.push(exp.location);
+      if (exp.start_date || exp.end_date) {
+        parts.push(`${exp.start_date || '?'} – ${exp.end_date || 'Present'}`);
+      }
+      expLines.push(parts.join(' | '));
+      for (const bullet of (exp.bullets || [])) {
+        expLines.push(`• ${bullet}`);
+      }
+      expLines.push('');
+    }
+    sections.push(expLines.join('\n').trimEnd());
+  }
+
+  // EDUCATION
+  if (cv.education && cv.education.length > 0) {
+    const eduLines = ['=== EDUCATION ==='];
+    for (const edu of cv.education) {
+      const degreePart = edu.field ? `${edu.degree} in ${edu.field}` : edu.degree;
+      const parts = [degreePart, edu.institution];
+      if (edu.start_date || edu.end_date) {
+        parts.push(`${edu.start_date || '?'} – ${edu.end_date || '?'}`);
+      }
+      eduLines.push(parts.join(' | '));
+    }
+    sections.push(eduLines.join('\n'));
+  }
+
+  // SKILLS
+  if (cv.skills && cv.skills.length > 0) {
+    sections.push(`=== SKILLS ===\n${cv.skills.join(', ')}`);
+  }
+
+  // CERTIFICATIONS
+  if (cv.certifications && cv.certifications.length > 0) {
+    const certLines = ['=== CERTIFICATIONS ==='];
+    for (const cert of cv.certifications) certLines.push(`• ${cert}`);
+    sections.push(certLines.join('\n'));
+  }
+
+  // LANGUAGES
+  if (cv.languages && cv.languages.length > 0) {
+    sections.push(`=== LANGUAGES ===\n${cv.languages.join(', ')}`);
+  }
+
+  return sections.join('\n\n');
+}
+
+module.exports = { normalizeParsedCV, parsedCvToText };

@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { normalizeParsedCV } = require('../services/cvParsingService');
+const { normalizeParsedCV, parsedCvToText } = require('../services/cvParsingService');
 
 test('normalizeParsedCV: returns safe defaults for null/non-object/array', () => {
   const empty = { contact: {}, experience: [], education: [], skills: [] };
@@ -98,4 +98,83 @@ test('normalizeParsedCV: empty certifications and languages arrays produce undef
   const result = normalizeParsedCV(raw);
   assert.equal(result.certifications, undefined);
   assert.equal(result.languages, undefined);
+});
+
+// ---- parsedCvToText tests -----------------------------------------------
+
+test('parsedCvToText: includes CONTACT section with present fields', () => {
+  const cv = normalizeParsedCV({
+    contact: {
+      name: 'Jane Smith', email: 'jane@example.com',
+      location: 'Berlin, Germany', linkedin: 'https://linkedin.com/in/jane',
+    },
+    experience: [], education: [], skills: [],
+  });
+  const text = parsedCvToText(cv);
+  assert.match(text, /=== CONTACT ===/);
+  assert.match(text, /Name: Jane Smith/);
+  assert.match(text, /Email: jane@example\.com/);
+  assert.match(text, /Location: Berlin, Germany/);
+  assert.match(text, /LinkedIn: https:\/\/linkedin\.com\/in\/jane/);
+});
+
+test('parsedCvToText: includes WORK EXPERIENCE with pipe-delimited header and bullets', () => {
+  const cv = normalizeParsedCV({
+    contact: {},
+    experience: [
+      {
+        title: 'Software Engineer', company: 'Acme', location: 'Berlin',
+        start_date: '2020-01', end_date: 'Present',
+        bullets: ['Built X', 'Led Y'],
+      },
+    ],
+    education: [], skills: [],
+  });
+  const text = parsedCvToText(cv);
+  assert.match(text, /=== WORK EXPERIENCE ===/);
+  assert.match(text, /Software Engineer \| Acme \| Berlin \| 2020-01 – Present/);
+  assert.match(text, /• Built X/);
+  assert.match(text, /• Led Y/);
+});
+
+test('parsedCvToText: includes EDUCATION section', () => {
+  const cv = normalizeParsedCV({
+    contact: {},
+    experience: [],
+    education: [
+      { degree: 'MSc', field: 'Computer Science', institution: 'TU Berlin', start_date: '2016', end_date: '2018' },
+    ],
+    skills: [],
+  });
+  const text = parsedCvToText(cv);
+  assert.match(text, /=== EDUCATION ===/);
+  assert.match(text, /MSc in Computer Science \| TU Berlin \| 2016 – 2018/);
+});
+
+test('parsedCvToText: includes SKILLS, CERTIFICATIONS, LANGUAGES sections', () => {
+  const cv = normalizeParsedCV({
+    contact: {},
+    experience: [], education: [],
+    skills: ['Python', 'JavaScript'],
+    certifications: ['AWS SAA'],
+    languages: ['English', 'German'],
+  });
+  const text = parsedCvToText(cv);
+  assert.match(text, /=== SKILLS ===/);
+  assert.match(text, /Python, JavaScript/);
+  assert.match(text, /=== CERTIFICATIONS ===/);
+  assert.match(text, /• AWS SAA/);
+  assert.match(text, /=== LANGUAGES ===/);
+  assert.match(text, /English, German/);
+});
+
+test('parsedCvToText: omits sections that are empty or absent', () => {
+  const cv = normalizeParsedCV({ contact: {}, experience: [], education: [], skills: [] });
+  const text = parsedCvToText(cv);
+  assert.doesNotMatch(text, /=== WORK EXPERIENCE ===/);
+  assert.doesNotMatch(text, /=== EDUCATION ===/);
+  assert.doesNotMatch(text, /=== SKILLS ===/);
+  assert.doesNotMatch(text, /=== PROFESSIONAL SUMMARY ===/);
+  assert.doesNotMatch(text, /=== CERTIFICATIONS ===/);
+  assert.doesNotMatch(text, /=== LANGUAGES ===/);
 });
