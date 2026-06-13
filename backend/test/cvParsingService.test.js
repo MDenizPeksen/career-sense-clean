@@ -69,3 +69,33 @@ test('normalizeParsedCV: omits optional fields when absent from input', () => {
   assert.equal(result.certifications, undefined);
   assert.equal(result.languages, undefined);
 });
+
+test('normalizeParsedCV: strips null and non-string values from contact', () => {
+  const raw = {
+    contact: { name: 'Alice', email: null, phone: undefined, location: '', linkedin: 'https://linkedin.com/in/alice' },
+    experience: [], education: [], skills: [],
+  };
+  const result = normalizeParsedCV(raw);
+  assert.equal(result.contact.name, 'Alice');
+  assert.equal(result.contact.linkedin, 'https://linkedin.com/in/alice');
+  assert.equal(result.contact.email, undefined);
+  assert.equal(result.contact.phone, undefined);
+  assert.equal(result.contact.location, undefined);
+});
+
+test('normalizeParsedCV: contact is a copy, not a reference', () => {
+  const raw = {
+    contact: { name: 'Alice', email: 'alice@example.com' },
+    experience: [], education: [], skills: [],
+  };
+  const result = normalizeParsedCV(raw);
+  result.contact.name = 'Mutated';
+  assert.equal(raw.contact.name, 'Alice'); // original must be unchanged
+});
+
+test('normalizeParsedCV: empty certifications and languages arrays produce undefined', () => {
+  const raw = { contact: {}, experience: [], education: [], skills: [], certifications: [], languages: [] };
+  const result = normalizeParsedCV(raw);
+  assert.equal(result.certifications, undefined);
+  assert.equal(result.languages, undefined);
+});

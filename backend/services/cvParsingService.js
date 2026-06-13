@@ -19,10 +19,14 @@ function normalizeParsedCV(raw) {
     return { contact: {}, experience: [], education: [], skills: [] };
   }
 
-  const contact =
+  const rawContact =
     raw.contact && typeof raw.contact === 'object' && !Array.isArray(raw.contact)
       ? raw.contact
       : {};
+  const contact = {};
+  for (const [k, v] of Object.entries(rawContact)) {
+    if (typeof v === 'string' && v.trim()) contact[k] = v.trim();
+  }
 
   const summary =
     typeof raw.summary === 'string' && raw.summary.trim()
@@ -82,8 +86,8 @@ function normalizeParsedCV(raw) {
     experience,
     education,
     skills,
-    ...(certifications !== undefined ? { certifications } : {}),
-    ...(languages !== undefined ? { languages } : {}),
+    ...(certifications && certifications.length > 0 ? { certifications } : {}),
+    ...(languages && languages.length > 0 ? { languages } : {}),
   };
 }
 
