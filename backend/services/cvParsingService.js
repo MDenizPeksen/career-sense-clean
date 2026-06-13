@@ -100,6 +100,7 @@ function normalizeParsedCV(raw) {
  * @returns {string}
  */
 function parsedCvToText(cv) {
+  if (!cv || typeof cv !== 'object') return '';
   const sections = [];
 
   // CONTACT
@@ -122,6 +123,7 @@ function parsedCvToText(cv) {
   if (cv.experience && cv.experience.length > 0) {
     const expLines = ['=== WORK EXPERIENCE ==='];
     for (const exp of cv.experience) {
+      if (!exp.title && !exp.company) continue;
       const parts = [exp.title, exp.company];
       if (exp.location) parts.push(exp.location);
       if (exp.start_date || exp.end_date) {
@@ -133,7 +135,7 @@ function parsedCvToText(cv) {
       }
       expLines.push('');
     }
-    sections.push(expLines.join('\n').trimEnd());
+    if (expLines.length > 1) sections.push(expLines.join('\n').trimEnd());
   }
 
   // EDUCATION

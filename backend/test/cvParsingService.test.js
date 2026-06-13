@@ -178,3 +178,38 @@ test('parsedCvToText: omits sections that are empty or absent', () => {
   assert.doesNotMatch(text, /=== CERTIFICATIONS ===/);
   assert.doesNotMatch(text, /=== LANGUAGES ===/);
 });
+
+test('parsedCvToText: always includes CONTACT section header even when contact is empty', () => {
+  const cv = normalizeParsedCV({ contact: {}, experience: [], education: [], skills: [] });
+  const text = parsedCvToText(cv);
+  assert.match(text, /=== CONTACT ===/);
+});
+
+test('parsedCvToText: includes PROFESSIONAL SUMMARY when present', () => {
+  const cv = normalizeParsedCV({
+    contact: {},
+    summary: 'Seasoned engineer with 8 years of experience.',
+    experience: [], education: [], skills: [],
+  });
+  const text = parsedCvToText(cv);
+  assert.match(text, /=== PROFESSIONAL SUMMARY ===/);
+  assert.match(text, /Seasoned engineer with 8 years of experience\./);
+});
+
+test('parsedCvToText: formats multiple experience entries separated by blank lines', () => {
+  const cv = normalizeParsedCV({
+    contact: {},
+    experience: [
+      { title: 'Senior Engineer', company: 'Corp A', bullets: ['Led team'] },
+      { title: 'Junior Engineer', company: 'Corp B', bullets: ['Wrote tests'] },
+    ],
+    education: [], skills: [],
+  });
+  const text = parsedCvToText(cv);
+  assert.match(text, /Senior Engineer \| Corp A/);
+  assert.match(text, /• Led team/);
+  assert.match(text, /Junior Engineer \| Corp B/);
+  assert.match(text, /• Wrote tests/);
+  // Entries are separated by a blank line
+  assert.match(text, /• Led team\n\nJunior Engineer/);
+});
