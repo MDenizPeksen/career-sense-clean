@@ -1,5 +1,9 @@
 'use strict';
 
+// The OpenAI client is constructed at import time and requires a key to exist
+// (cvParsingService now imports openaiService). Set a dummy key before requiring.
+process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test-key';
+
 const test = require('node:test');
 const assert = require('node:assert/strict');
 

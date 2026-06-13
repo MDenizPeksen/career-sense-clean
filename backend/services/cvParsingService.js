@@ -1,5 +1,9 @@
 'use strict';
 
+const { callOpenAIJson } = require('./openaiService');
+const { ValidationError } = require('../utils/errors');
+const cvParsePrompt = require('./prompts/cvParsePrompt');
+
 /**
  * @typedef {{ name?: string, email?: string, phone?: string, location?: string, linkedin?: string, portfolio_url?: string }} CvContact
  * @typedef {{ title: string, company: string, location?: string, start_date?: string, end_date?: string, bullets: string[] }} CvExperience
@@ -172,4 +176,26 @@ function parsedCvToText(cv) {
   return sections.join('\n\n');
 }
 
-module.exports = { normalizeParsedCV, parsedCvToText };
+/**
+ * Parse raw CV text into a structured ParsedCV using gpt-4o-mini.
+ * One cheap, low-temperature call — extraction only, no invented content.
+ * @param {string} rawText
+ * @returns {Promise<ParsedCV>}
+ */
+async function parseCvStructure(rawText) {
+  if (!rawText || typeof rawText !== 'string' || rawText.trim().length < 50) {
+    throw new ValidationError(
+      'Invalid CV text',
+      'CV text must be a string with at least 50 characters'
+    );
+  }
+  const raw = await callOpenAIJson({
+    system: 'You are a precise CV data extractor. Return only valid JSON matching the requested schema.',
+    user: cvParsePrompt(rawText),
+    maxTokens: 1500,
+    temperature: 0.1,
+  });
+  return normalizeParsedCV(raw);
+}
+
+module.exports = { normalizeParsedCV, parsedCvToText, parseCvStructure };
