@@ -1,5 +1,6 @@
 const openaiService = require('../services/openaiService');
 const fileService = require('../services/fileProcessingService');
+const cvParsingService = require('../services/cvParsingService');
 const { ValidationError } = require('../utils/errors');
 const { getRequestUserId } = require('../middleware/authMiddleware');
 const { saveAnalysis, getLatestAnalysis } = require('../db/analyses');
@@ -16,11 +17,20 @@ exports.analyzeCV = async (req, res, next) => {
     console.log(`Processing file: ${filePath}`);
 
     try {
-      // Extract text from file
-      const cvText = await fileService.extractTextFromFile(req.file);
+      // Stage 1: Extract raw text from the uploaded file (pdf-parse / mammoth)
+      const rawText = await fileService.extractTextFromFile(req.file);
 
-      // Analyze CV with OpenAI
-      const analysis = await openaiService.analyzeCV(cvText);
+      // Stage 2: Parse into structured ParsedCV (cheap gpt-4o-mini extraction call)
+      const parsedCv = await cvParsingService.parseCvStructure(rawText);
+
+      // Stage 3: Convert ParsedCV → structured section-labelled text for the analysis prompt
+      const structuredText = cvParsingService.parsedCvToText(parsedCv);
+
+      // Stage 4: Full analysis against the structured text (existing prompt, unchanged)
+      const analysis = await openaiService.analyzeCV(structuredText);
+
+      // Attach ParsedCV to the payload so Phase 2.2 can use structured data directly
+      analysis.parsed_cv = parsedCv;
 
       // Attach real, clickable course links (deterministic, code-side).
       enrichLearningRoadmap(analysis);
@@ -41,7 +51,6 @@ exports.analyzeCV = async (req, res, next) => {
       }
     }
   } catch (error) {
-    // Pass the error to the error handler middleware
     next(error);
   }
 };
