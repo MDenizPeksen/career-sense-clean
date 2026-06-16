@@ -110,23 +110,19 @@ const HeroVideo: React.FC = () => {
             Turn your CV into a career you can see.
           </span>
         </h1>
-        <p className="mt-4 max-w-md text-base sm:text-lg text-white/90 [text-shadow:0_1px_10px_rgba(0,0,0,0.6)]">
-          Start with your CV — then keep going. CareerSense gets to know you and
-          builds an evolving plan that grows with every step you take.
-        </p>
       </motion.div>
 
       {/* ── Floating feature pills (desktop: left/right columns; mobile: 2×2 grid) ── */}
 
       {/* Desktop left column */}
-      <div className="hidden sm:flex absolute left-[5%] top-0 h-full flex-col items-start justify-center gap-5 z-10">
+      <div className="hidden sm:flex absolute left-[5%] top-[48%] flex-col items-start gap-5 z-10">
         {leftFeatures.map((f) => (
           <GlassPill key={f.label} {...f} />
         ))}
       </div>
 
       {/* Desktop right column */}
-      <div className="hidden sm:flex absolute right-[5%] top-0 h-full flex-col items-end justify-center gap-5 z-10">
+      <div className="hidden sm:flex absolute right-[5%] top-[48%] flex-col items-end gap-5 z-10">
         {rightFeatures.map((f) => (
           <GlassPill key={f.label} {...f} />
         ))}
