@@ -25,6 +25,12 @@ exports.analyzeCV = async (req, res, next) => {
 
       // Stage 3: Convert ParsedCV → structured section-labelled text for the analysis prompt
       const structuredText = cvParsingService.parsedCvToText(parsedCv);
+      if (structuredText.length < 100) {
+        throw new ValidationError(
+          'CV content too sparse',
+          'Your CV appears to contain very little content. Please upload a more complete CV.'
+        );
+      }
 
       // Stage 4: Full analysis against the structured text (existing prompt, unchanged)
       const analysis = await openaiService.analyzeCV(structuredText);
