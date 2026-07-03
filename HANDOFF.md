@@ -41,6 +41,50 @@ CV-companion track** (better extraction → richer analysis → dashboard).
 > (path is `/online/occupations/{code}/summary/related_occupations`) / `getOccupationSkills`
 > all return real data, and `getCareerPaths` returns `source:"onet"` with real O*NET codes
 > + skill gaps. `ONET_API_KEY` is in `backend/.env` (gitignored).
+> ⚠️ **Only verified locally.** The live O*NET path was smoke-tested against a local
+> backend `.env` — it was **never confirmed on Render (prod)**. Verifying that is the
+> first step of the next task (see below).
+
+---
+
+## ▶ NEXT SESSION — surface real-data grounding in the results
+
+**Goal (user, 2026-07-03):** actually deploy the data tools into the app and *show
+them in the results the user sees* — not buried in a separate page. This is a
+**design decision, so start with the brainstorming skill** (this session began that
+and the user chose to defer it to a fresh session). Do NOT jump to code.
+
+**Decision context — the O*NET / ESCO / Adzuna discussion:**
+- **O*NET** = official occupation + skills taxonomy (US). **Built and live** in
+  `services/careerPathService.js` (+ `data/onetClient.js`), used by `GET /api/career-paths`
+  and surfaced today only on the `/career-paths` page. Degrades gracefully:
+  `source:'onet'` when configured, else `source:'analysis'` (LLM-derived) — so it is
+  **not load-bearing**.
+- **ESCO** (EU occupation/skills taxonomy) + **Adzuna** (live salaries + demand) =
+  in the approved 2.0 spec but **zero code — not built**.
+- **Why they matter:** they let quantitative claims (salaries, demand, skill gaps)
+  be *real data* rather than LLM guesses. CLAUDE.md's "never fabricate" rule means
+  LLM-guessed numbers shown as fact are a liability.
+- **Recommendation on file:** keep O*NET (free, safe fallback); **defer ESCO/Adzuna**
+  until there's user demand for real salary/credibility data. The deciding factor is
+  whether the app will *present numbers as facts* — if yes, you need real data (at
+  least Adzuna); if it stays advisory/qualitative, LLM-only is fine for now.
+
+**Open questions to resolve in the brainstorm (before any code):**
+1. **Where** do grounded insights appear — woven into the main analysis/dashboard
+   results, or kept as the existing `/career-paths` page?
+2. **Which tools** are in scope this round — O*NET only, or commit to ESCO/Adzuna too?
+3. **Provenance UI** — how to badge "real data" vs "AI-derived" so the no-fabrication
+   rule is visible to the user.
+
+**First concrete step regardless of the above:** verify O*NET actually works in
+**production** — hit `GET /api/career-paths` on Render and check the payload's
+`onetConfigured` / `source` fields. If `ONET_API_KEY` isn't set on Render, prod is
+always on the LLM fallback and that must be fixed before "showing real data" means
+anything.
+
+**Housekeeping first:** merge PR #17
+(`chore/env-hardening-and-handoff`): https://github.com/MDenizPeksen/career-sense-clean/pull/17
 
 ---
 
