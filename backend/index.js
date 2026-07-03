@@ -8,6 +8,7 @@ const os = require('os');
 
 // Configuration
 const serverConfig = require('./config/server');
+const { validateEnv } = require('./config/validateEnv');
 
 // App factory (middleware + routes; no listener)
 const createApp = require('./app');
@@ -16,18 +17,8 @@ const createApp = require('./app');
 const openaiService = require('./services/openaiService');
 const { sweepStaleUploads } = require('./services/fileProcessingService');
 
-// Verify environment variables
-if (!process.env.OPENAI_API_KEY) {
-  console.error('\n❌ Error: OPENAI_API_KEY is not set in .env file');
-  console.log('\n📝 Please follow these steps:');
-  console.log('1. Create a .env file in the root directory if it doesn\'t exist');
-  console.log('2. Add your OpenAI API key to the .env file:');
-  console.log('   OPENAI_API_KEY=your_api_key_here');
-  console.log('3. Make sure to replace "your_api_key_here" with your actual OpenAI API key');
-  console.log('\n💡 If you don\'t have an API key, you can get one at:');
-  console.log('   https://platform.openai.com/api-keys\n');
-  process.exit(1);
-}
+// Verify (and normalize) environment variables. Fatal misconfig exits here.
+validateEnv();
 
 // Determine if we should use clustering based on environment variable
 const ENABLE_CLUSTERING = process.env.ENABLE_CLUSTERING === 'true';

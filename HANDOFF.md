@@ -4,10 +4,35 @@ Living status doc — what's done, what's next, and how to pick the work back up
 Update the "Last updated" line and the relevant sections whenever you make
 meaningful progress.
 
-**Last updated:** 2026-06-10
-**Active branch:** `quality-hardening` (→ `main`). Companion roadmap Phases A–D done
-+ merged (PRs #1, #2); now on a quality/tech-debt pass — see the plan
-`~/.claude/plans/we-setup-onet-connection-replicated-donut.md`.
+**Last updated:** 2026-07-03
+**Active branch:** `main`. Companion roadmap Phases A–D and the quality-hardening
+pass are done + merged. The app is **live** (frontend on Vercel, backend on
+Render — see the Deployment topology table below). Current work is the **Phase 2
+CV-companion track** (better extraction → richer analysis → dashboard).
+
+**Phase 2 status (2026-07-03):**
+- ✅ **2.0** — output spec approved (EU-first ESCO+Adzuna real data, hybrid
+  scoring, provenance model). See memory `phase-2-0-output-spec.md`.
+- ✅ **2.1** — two-stage structured CV extraction, merged to `main`. Raw text →
+  `ParsedCV` JSON (`services/cvParsingService.js` + `prompts/cvParsePrompt.js`) →
+  section-labelled text into the existing analysis prompt; `parsed_cv` attached to
+  the payload; sparse-CV guard in `cvController`. Plan:
+  `docs/superpowers/plans/2026-06-13-parsedcv-extraction.md`.
+- 🔄 **2.2** — analysis enrichment, in progress in the git worktree
+  `worktree-feat+phase-2-2-analysis-enrichment`.
+
+## Deployment topology (authoritative)
+
+| Component | Platform | Project / URL | Root dir | Key env vars |
+|-----------|----------|---------------|----------|--------------|
+| Frontend  | Vercel   | `career-sense-clean` | `clerk-react` | `VITE_API_URL`, `VITE_CLERK_PUBLISHABLE_KEY`, `VITE_AUTH_ENABLED` |
+| Backend   | Render   | `careersense-backend-xywk.onrender.com` (`render.yaml`) | `backend` | `OPENAI_API_KEY`, `DATABASE_URL`, `CLERK_SECRET_KEY`, `AUTH_ENABLED`, `ALLOWED_ORIGINS`, `NODE_ENV`, `ONET_API_KEY` |
+| Database  | Neon (Postgres) | via `DATABASE_URL` | — | — |
+
+> ⚠️ There is **no** live backend on Vercel — an old `career-sense-clean-backend`
+> Vercel project was a defunct 404 shell. The backend is Render only.
+> `backend/config/validateEnv.js` normalizes/validates these vars at startup
+> (de-quotes pasted values, fails fast in production on missing DB/Clerk keys).
 
 > ✅ **O*NET is LIVE and verified (2026-06-10).** Migrated `onetClient.js` from the
 > legacy v1 HTTP-Basic scheme to **Web Services v2**: base URL `https://api-v2.onetcenter.org`,
@@ -16,6 +41,50 @@ meaningful progress.
 > (path is `/online/occupations/{code}/summary/related_occupations`) / `getOccupationSkills`
 > all return real data, and `getCareerPaths` returns `source:"onet"` with real O*NET codes
 > + skill gaps. `ONET_API_KEY` is in `backend/.env` (gitignored).
+> ⚠️ **Only verified locally.** The live O*NET path was smoke-tested against a local
+> backend `.env` — it was **never confirmed on Render (prod)**. Verifying that is the
+> first step of the next task (see below).
+
+---
+
+## ▶ NEXT SESSION — surface real-data grounding in the results
+
+**Goal (user, 2026-07-03):** actually deploy the data tools into the app and *show
+them in the results the user sees* — not buried in a separate page. This is a
+**design decision, so start with the brainstorming skill** (this session began that
+and the user chose to defer it to a fresh session). Do NOT jump to code.
+
+**Decision context — the O*NET / ESCO / Adzuna discussion:**
+- **O*NET** = official occupation + skills taxonomy (US). **Built and live** in
+  `services/careerPathService.js` (+ `data/onetClient.js`), used by `GET /api/career-paths`
+  and surfaced today only on the `/career-paths` page. Degrades gracefully:
+  `source:'onet'` when configured, else `source:'analysis'` (LLM-derived) — so it is
+  **not load-bearing**.
+- **ESCO** (EU occupation/skills taxonomy) + **Adzuna** (live salaries + demand) =
+  in the approved 2.0 spec but **zero code — not built**.
+- **Why they matter:** they let quantitative claims (salaries, demand, skill gaps)
+  be *real data* rather than LLM guesses. CLAUDE.md's "never fabricate" rule means
+  LLM-guessed numbers shown as fact are a liability.
+- **Recommendation on file:** keep O*NET (free, safe fallback); **defer ESCO/Adzuna**
+  until there's user demand for real salary/credibility data. The deciding factor is
+  whether the app will *present numbers as facts* — if yes, you need real data (at
+  least Adzuna); if it stays advisory/qualitative, LLM-only is fine for now.
+
+**Open questions to resolve in the brainstorm (before any code):**
+1. **Where** do grounded insights appear — woven into the main analysis/dashboard
+   results, or kept as the existing `/career-paths` page?
+2. **Which tools** are in scope this round — O*NET only, or commit to ESCO/Adzuna too?
+3. **Provenance UI** — how to badge "real data" vs "AI-derived" so the no-fabrication
+   rule is visible to the user.
+
+**First concrete step regardless of the above:** verify O*NET actually works in
+**production** — hit `GET /api/career-paths` on Render and check the payload's
+`onetConfigured` / `source` fields. If `ONET_API_KEY` isn't set on Render, prod is
+always on the LLM fallback and that must be fixed before "showing real data" means
+anything.
+
+**Housekeeping first:** merge PR #17
+(`chore/env-hardening-and-handoff`): https://github.com/MDenizPeksen/career-sense-clean/pull/17
 
 ---
 
@@ -193,7 +262,7 @@ Tech-debt session (4 commits). Done:
 
 ```bash
 cd /Users/denizpeksen/Documents/career-sense/career-sense-clean
-git checkout harden-and-deploy
+git checkout main            # or the Phase 2.2 worktree for that work
 
 # run both halves
 cd backend && npm install && npm run dev          # :5001
@@ -206,13 +275,12 @@ Open http://localhost:3000 → "Analyze my CV" → upload a PDF/DOCX → dashboa
 
 ## Open items / watch-outs
 
-- **Uncommitted partial change** in `backend/middleware/uploadMiddleware.js`
-  (from the spawned "uploads should 400" task): swaps `Error` → `ValidationError`
-  in `fileFilter` so unsupported types return 400. Still TODO in that task:
-  surface multer size-limit / `MulterError`s as 400 too, then commit. Decide
-  whether to finish it here or via that task's own worktree (avoid double-commit).
-- **PR #1** is open (`harden-and-deploy` → `main`):
-  https://github.com/MDenizPeksen/career-sense-clean/pull/1
+- **Branch hygiene:** merged remote feature branches accumulate — prune them
+  (`git push origin --delete <branch>`) and enable GitHub's "automatically delete
+  head branches" so stale branches stop causing "why don't I see my change"
+  confusion.
+- **Stale docs:** `docs/API_DOCUMENTATION.md` and `docs/COMPONENT_DOCUMENTATION.md`
+  still describe the old CRA frontend.
 - ✅ **Vercel repointed to `clerk-react/` (Vite).** The `career-sense-clean`
   project now has Root Directory `clerk-react`, framework Vite, output `dist`, and
   `VITE_API_URL` / `VITE_CLERK_PUBLISHABLE_KEY` / `VITE_AUTH_ENABLED` env vars
