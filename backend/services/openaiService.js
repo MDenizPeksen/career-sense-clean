@@ -5,15 +5,23 @@ const analysisPrompt = require('./prompts/analysisPrompt');
 const getArchetypePrompt = require('./prompts/archetypePrompt');
 const interviewQuestionsPrompt = require('./prompts/interviewQuestionsPrompt');
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: openaiConfig.apiKey
-});
+// Lazily initialize the OpenAI client on first use. Instantiating at require
+// time made every module that (transitively) imports this file crash without
+// OPENAI_API_KEY — which broke tests, scripts, and module-load checks. Creating
+// it on demand keeps import side-effect-free; the key is still required to
+// actually call the API.
+let openaiClient;
+const getClient = () => {
+  if (!openaiClient) {
+    openaiClient = new OpenAI({ apiKey: openaiConfig.apiKey });
+  }
+  return openaiClient;
+};
 
 // Test OpenAI connection
 const testOpenAIConnection = async () => {
   try {
-    await openai.chat.completions.create({
+    await getClient().chat.completions.create({
       model: openaiConfig.model,
       messages: [{ role: "user", content: "Hello, this is a test connection." }],
       max_tokens: openaiConfig.maxTokens.test
@@ -71,7 +79,7 @@ const callOpenAIJson = async ({ system, user, messages, maxTokens, temperature, 
 
   let content;
   try {
-    const completionPromise = openai.chat.completions.create({
+    const completionPromise = getClient().chat.completions.create({
       model: openaiConfig.model,
       messages: finalMessages,
       max_tokens: maxTokens,
@@ -181,7 +189,7 @@ const generateInterviewQuestions = async (role, level) => {
 };
 
 module.exports = {
-  openai,
+  getClient,
   callOpenAIJson,
   parseJsonResponse,
   testOpenAIConnection,
